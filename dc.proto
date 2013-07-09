@@ -1,0 +1,398 @@
+
+//define uint24 data type
+message uint24
+{
+    optional bytes low = 1;
+    optional bytes high = 2;
+}
+
+//dc_head
+message dc_head
+{
+	enum dc_type
+	{
+		DCT_NUL = 0;
+		DCT_KEEPALIVE = 1;			//<-->....1
+		DCT_LOGIN = 2;				//<-->.........	2
+		DCT_REQPASS = 3;			//<-->.........3
+		DCT_USERnPASS = 4;			//<-->.....4
+		DCT_READY = 5;				//-->...........5
+		DCT_RESEND = 6;				//-->.....6
+		DCT_STKSTATIC = 7;			//<--....7
+		DCT_STKDYNA = 8;			//<--....8
+		DCT_SHL2_MMPEx = 9;			//<--level2.....9
+		DCT_SHL2_REPORT = 10;		//<--level2....10
+		DCT_SHL2_BIG_WD = 11;		//<--level2......11
+		DCT_SHL2_ACCU_WD = 12;		//<--level2......12
+		DCT_HK_STATIC = 13;  		//<--....13
+		DCT_HK_DYNA = 14;			//<--....14
+		DCT_XML = 15;				//<--XML....15
+		DCT_SHL2_QUEUE = 16;			//<--......level2..16
+		DCT_GENERAL = 17;			//<--....17
+		DCT_USERSTAT = 18;			//-->......18
+		DCT_RAWDATA = 19;			//<-->....19
+		DCT_NEWS = 20;				//<--...........20
+		DCT_SZL2_ORDER_QUEUE = 21;	//<--.......Level2..21
+		DCT_SZL2_ORDER_STAT = 22;	//<--.........Level2..22
+	
+		DCT_SZL2_FULL_ORDER=100;//<--...........Level2..
+		DCT_SZL2_FULL_TRADE=101;//<--..,...........Level2..
+	}
+	optional bytes tag = 1;
+	optional bytes type = 2;
+	optional bytes attrib = 3;
+	
+	repeated uint24 len = 4;
+	repeated uint24 seq = 5; 
+}
+
+//stk_dyna
+message stk_dyna
+{
+	optional bytes stkid = 1;
+	optional int64 time = 2;
+	optional uint32 open = 3;
+	optional uint32 high = 4;
+	optional uint32 low = 5;
+	optional uint32 new = 6;
+	optional uint32 volume = 7;
+	optional uint32 amount = 8;
+	optional uint32 innerVol = 9;
+	optional uint32 tickCount = 10;
+	optional bytes buyPrice	= 11;  //uint32[5]
+	optional bytes buyVol = 12;    //uint32[5]
+	optional bytes sellPrice = 13; //uint32[5]
+	optional bytes sellVol = 14;   //uint32[5]
+	optional uint32 openinterest = 15;
+	optional uint32 settlePrice = 16;
+}
+
+//dc_keepalive
+message dc_keepalive
+{
+	repeated uint24 lastRcvSeq = 1;	
+}
+
+//dc_stkdyna
+message dc_stkdyna
+{
+	optional bytes dynaSeq = 1;
+	optional bytes num = 2;
+	repeated stk_dyna data = 3;	
+}
+
+message dc_login
+{
+	optional bytes marketid = 1;
+	optional bytes marketName = 2;
+	optional uint32 timeZone = 3;
+	optional bytes numOpenCloseTime = 4;
+	optional bytes openTime = 5;
+	optional bytes closeTime = 6;
+	optional uint32 attrib = 7;
+	optional bytes priority = 8;
+}
+
+enum dc_ency_type
+{
+    DC_NOENC = 0;           //....
+    DC_ENCY_SIMPLE = 1;         //....
+    DC_ENCY_DES = 2;            //DES.. (##)
+    DC_ENCY_AES = 3;            //AES..
+    DC_ENCY_MASK = 7;       //....MASK
+}
+
+
+message dc_reqpass
+{
+	optional dc_ency_type encyType = 1;
+	optional uint64 key = 2;
+}
+
+message dc_userpass
+{
+	optional bytes user = 1;
+	optional bytes pass = 2;
+}
+
+message dc_ready
+{
+	enum dc_instruct
+	{
+		SUCCESS = 0;//................
+		WAIT = 1;					//.................SUCCESS...DC_READY.
+		DISCONNECT = 2;				//........
+		IDLE = 3;					//.................SUCCESS...DC_READY....
+		QUOTEDAT = 4;				//..,..client....QUOT......
+		DEALDATAOVER = 5;//......
+	}
+	enum dc_error
+	{
+		NOERR = 0;
+		INVALID_USERPASS = 1;		//.......
+		MARKET_ALREADY_EXSIST = 2;	//......
+		NOT_SUPPORT_MARKET = 3;		//.........
+		SERVER_NOTREADY = 4;			//..............
+	}
+	optional dc_instruct instruct = 1;
+	optional dc_error errcode = 2;	
+	optional uint32 delayConnectTime = 3;
+	optional uint32 staticLabVersion = 4;
+	optional uint32 compress = 5;
+	optional dc_ency_type dataEncyType = 6;
+	optional uint64 dataKey = 7; 
+}
+
+message dc_resend
+{
+    optional uint32 beginSeq = 1;
+    optional int32 num = 2;
+}
+
+enum stk_type
+{
+	INDEX = 0;
+	STOCK = 1;
+	FUND = 2;
+	BOND = 3;
+	OTHER_STOCK = 4;
+	OPTION = 5;
+	EXCHANGE = 6;
+	FUTURE = 7;
+	FTR_IDX = 8;
+	RGZ = 9;
+	ETF = 10;
+	LOF = 11;
+	COV_BOND = 12;
+	TRUST = 13;
+	WARRANT = 14;
+	REPO = 15;
+	COMM = 16;
+}
+
+message stk_static
+{
+	optional bytes stkid = 1;
+	optional bytes strLabel = 2;
+	optional bytes strName = 3;	
+	optional bytes type = 4;
+	optional bytes priceDigit = 5;
+	optional bytes volUnit = 6;
+	optional uint32 floatIssued =7;
+	optional uint32 totalIssued = 8;
+	optional uint32 lastClose = 9;
+	optional uint32 advStop = 10;
+	optional uint32 decStop = 11;
+}
+
+message dc_stkstatic
+{
+	optional uint32 version = 1;
+	optional bytes attrib = 2;
+	optional uint32 day = 3;
+	optional bytes num = 4;
+	repeated stk_static data = 5;	
+}
+
+message sh_l2_mmpex
+{
+	optional bytes stkid = 1;
+	optional uint32 avgBuyPrice = 2;
+	optional uint32 allBuyVod = 3;
+	optional uint32 avgSellPrice = 4;
+	optional uint32 allSellVol = 5;
+	optional bytes buyPrice = 6;
+	optional bytes buyVol = 7;
+	optional bytes sellPrice = 8;
+	optional bytes sellVol = 9;
+}
+
+message dc_shl2_mmpex
+{
+	optional bytes num = 1;
+	repeated sh_l2_mmpex data = 2;	
+}
+
+message dc_shl2_queue
+{
+	optional uint32 queue = 1;
+}
+
+message sh_l2_report
+{
+	optional bytes stkid = 1;
+	optional int64 time = 2;
+	optional uint32 price = 3;
+	optional uint32 vol = 4;
+}
+
+message dc_shl2_report
+{
+	optional bytes num = 1;
+	repeated sh_l2_report data = 2;
+}
+
+message sh_l2_big_wd
+{
+	optional bytes stkid = 1;
+	optional int64 time = 2;
+	optional int64 submit = 3;
+	optional uint32 price = 4;
+	optional uint32 withdrawVol = 5; 
+}
+
+message dc_shl2_big_wd
+{
+	optional bytes bigOrAsk = 1;
+	optional bytes num = 2;
+	repeated sh_l2_big_wd data = 3;
+}
+
+message sh_l2_accu_md
+{
+	optional bytes stkid = 1;
+	optional int64 time = 2;
+	optional uint32 withdrawVol = 3;
+}
+
+message dc_shl2_accu_wd
+{
+	optional bytes bigOrAsk = 1;
+	optional bytes num = 2;
+	repeated sh_l2_accu_md data = 3;	
+}
+
+message sz_l2_order_stat
+{
+	optional bytes stkid = 1;
+	optional uint32 buyOrderVolLit = 2;
+	optional uint32 buyOrderVolMid = 3;
+	optional uint32 buyOrderVolBig = 4;
+	optional uint32 buyOrderVolHuge = 5;
+	optional uint32 sellOrderVolLit = 6;
+	optional uint32 sellOrderVolMid = 7;
+	optional uint32 sellOrderVolBig = 8;
+	optional uint32 sellOrderVolHuge = 9;
+	repeated uint24 buyOrderNum = 10;
+	repeated uint24 sellOrderNum = 11;
+	optional uint32 buyWithdrawVol = 12;
+	optional uint32 sellWithdrawVol = 13;
+}
+
+message dc_szl2_order_stat
+{
+	optional bytes num = 1;
+	optional int64 time = 2;
+	repeated sz_l2_order_stat data = 3;
+}
+
+message dc_xml
+{
+	enum xml_process
+	{
+		SVR_PROCESS = 0;    //.....
+		SVR_SEND = 1;			//..........
+		INFO = 2;				//..,..F10........
+		LIST_MENU = 3;			//........
+		LIST_TABLE = 4;			//......
+
+		PUSHINFO_ROLL = 100;//....
+		PUSHINFO_ROLL1 = 101;			//....1,......
+		PUSHINFO_ROLL2 = 102;			//....2,......
+		PUSHINFO_ROLL3 = 103;			//....3,......
+		PUSHINFO_ROLL4 = 104;			//....4,......
+		PUSHINFO_ROLL5 = 105;			//....5,......
+		PUSHINFO_ROLL6 = 106;			//....6,......
+		PUSHINFO_ROLL7 = 107;			//....7,......
+		PUSHINFO_ROLL8 = 108;			//....8,......
+		PUSHINFO_ROLL9 = 109;			//....9,......
+
+		PUSHINFO_MOTION = 200;//...2......2........1......2............
+	}
+	repeated xml_process processType = 1;
+	optional bytes marketid = 2;
+	optional uint32 data = 3;
+	optional uint32 extra = 4;
+	optional int32 len = 5;
+	optional bytes strxml = 6;
+}
+
+message dc_general
+{
+	optional bytes dataid = 1;
+	optional bytes marketid = 2;
+	optional uint32 dataAttr = 3;
+	optional bytes dataSize = 4;
+	repeated uint24 totalLen = 5;
+	optional bytes num = 6;
+	optional uint32 reserved = 7;
+	optional bytes stock = 8;
+}
+
+//message serverdatainfo
+//{
+//	optional bytes monitorFlag = 1;
+//	optional bytes zmFlag = 2;
+//	optional bytes userFlag = 3;
+//	optional bytes zmProcessNum = 4;
+//	optional bytes userProcessNum = 5;
+//	optional bytes onlineUserNum = 6;
+//	optional bytes maxUserNum = 7;
+//	optional bytes nfsFlag = 8;
+//	optional bytes zhdocData = 9;
+//	optional bytes zmCpu = 10;
+//	optional bytes userCpu = 11;
+//	optional bytes memorySize = 12;
+//	optional bytes swapSize = 13;
+//	optional bytes userSwapSize = 14;
+//	optional bytes limitUserNum = 15;
+//	optional uint32 limitData = 16;
+//	optional uint32 userPort = 17;
+//	optional uint32 downloadPort = 18;
+//	optional bytes osname = 19;
+//	optional bytes cpuNum = 20;
+//	optional uint32 sysBootData = 21;
+//	optional uint32 sysBootTime = 22;
+//	optional uint32 runtime = 23;
+//	optional uint32 sysDate = 24;
+//	optional uint32 sysTime = 25;
+//	optional uint32 zmStartDate = 26;
+//	optional uint32 zmStartTime = 27;
+//	optional int64 zmRunTime = 28;
+//	optional uint32 userStartData = 29;
+//	optional uint32 userStartTime = 30;
+//	optional int64 userRunTime = 31;
+//	//attentioin
+//	optional int32 validUserTypeNum = 32;
+//	repeated usertype userType = 33;
+//	optional int32 validUserVerNum = 34;
+//	repeated userver userVer = 35;
+//}
+//message dc_userstat
+//{
+//	optional uint32 serverAddr = 1;
+//	optional bytes serverPort = 2;
+//	repeated serverdatainfo data = 3;
+//}
+
+message dc_rawdata
+{
+	optional bytes marketid = 1;
+	optional bytes fileName = 2;
+	optional uint32 attrib = 3;
+	optional uint32 version = 4;
+	optional uint32 rawDataLen = 5;
+	optional uint32 dataLen = 6;
+	optional bytes data = 7;
+}
+
+message dc_news
+{
+	optional uint32 serialNo = 1;
+	optional bytes attrib = 2;
+	optional bytes titleLen = 3;
+	optional uint32 textLen = 4;
+	optional bytes text = 5;
+}
+
+

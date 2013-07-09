@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="gb2312" ?>
+<Stocks MarketDate="20130607">
+	<Stock Label="KPAGS" Name="昆贵银挂牌卖" Time="0" volUnit="1" priceDigit="3" Open="0" High="0" Low="0" Last="5629" Precls="5629" />
+	<Stock Label="KPAGB" Name="昆贵银挂牌买" Time="0" volUnit="1" priceDigit="3" Open="0" High="0" Low="0" Last="5639" Precls="5639" />
+	<Stock Label="KPPTS" Name="昆贵铂挂牌卖" Time="0" volUnit="1" priceDigit="2" Open="0" High="0" Low="0" Last="31145" Precls="31145" />
+	<Stock Label="KPPTB" Name="昆贵铂挂牌买" Time="0" volUnit="1" priceDigit="2" Open="0" High="0" Low="0" Last="31245" Precls="31245" />
+	<Stock Label="KPPDS" Name="昆贵钯挂牌卖" Time="0" volUnit="1" priceDigit="2" Open="0" High="0" Low="0" Last="14551" Precls="14551" />
+	<Stock Label="KPPDB" Name="昆贵钯挂牌买" Time="0" volUnit="1" priceDigit="2" Open="0" High="0" Low="0" Last="14651" Precls="14651" />
+</Stocks>

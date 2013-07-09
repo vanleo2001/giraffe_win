@@ -1,0 +1,101 @@
+#ifndef MONITOR_PACKETCAPTURE_H_
+#define MONITOR_PACKETCAPTURE_H_
+
+
+#ifdef __linux
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+#else
+	#include <winsock2.h>
+#endif
+
+//#include <sys/epoll.h>
+
+#include <fcntl.h>
+#include <pthread.h>
+#include <deque>
+#include <map>
+#include <fstream>
+#include <iostream>
+#include <sstream>
+#include <pcap/pcap.h>
+#include "log4cpp/Category.hh"
+#include "log4cpp/Appender.hh"
+#include "log4cpp/FileAppender.hh"
+#include "log4cpp/Layout.hh"
+#include "log4cpp/BasicLayout.hh"
+#include "log4cpp/Priority.hh"
+#include "log4cpp/PatternLayout.hh"
+#include "structs.h"
+#include "parse.h"
+#include "basethread.h"
+
+using namespace std;
+
+#define MAX_EPOLL_CREATE_SIZE 65536
+#define MAX_EVENTS 65536
+
+class Capture:public BaseThread
+{
+public:
+    Capture(zmq::context_t *context,int adapter_id,std::string filter):context_(context),adapter_id_(adapter_id),filter_(filter){};
+    virtual ~Capture(){};
+    void *RunThreadFunc();
+protected:
+private:
+    zmq::context_t *context_;
+	int adapter_id_;
+    std::string filter_;
+};
+
+//int set_nonblock_flag(int desc, int value);
+//Callback function invoked by libpcap for every incoming packet
+void PacketHandler(unsigned char *param, const struct pcap_pkthdr *header, const unsigned char *pkt_data);
+
+
+//class Capture
+//{
+//public:
+//    Capture()
+//    {
+//
+////        dbuf_.clear();
+////        pthread_mutex_init(&mutex_cp_,NULL);
+////        tfp_.filter = filter;
+////        tfp_.dbuf = &dbuf_;
+////        tfp_.mutex_cp = &mutex_cp_;
+//          //zmq version
+//
+//    };
+//    virtual ~Capture(){};
+//    void set_packetfilter(string &filter);
+////    string get_packetfilter();
+////    deque<pcap_work_item> * get_dbuf();
+////    ThreadFuncParam * get_tfp();
+//    void StartThread(zmq::context_t *);
+//    void JoinThread();
+//
+//    static void *ThreadFunc(void *args);
+//
+//private:
+//    pthread_t tid_;
+////    string packetfilter_;
+////    pthread_mutex_t mutex_cp_;
+////    deque<pcap_work_item> dbuf_;
+//    ThreadFuncParams tfp_;
+//};
+
+//typedef struct pthread_params
+//{
+//    int countnum;
+//    int timebase;
+//    int timetag;
+//}pthread_params;
+
+//void parsepacket();
+//
+//void infotos(struct tm *ltime,char *iproto,ip_head *ih,u_short sport,u_short dport,int len,char *flags,char *dctype);
+
+
+
+#endif // MONITOR_PACKETCAPTURE_H_

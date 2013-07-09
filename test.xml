@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listening>
+    <did_config configpath="D:\Projects\vs2010\Monitor_Win\Monitor_Win\config.xml" ></did_config>
+    <did_templates>
+      <did_template id ="1" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100000.xml"></did_template>
+      <did_template id ="2" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100001.xml"></did_template>
+      <did_template id ="3" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100002.xml"></did_template>
+      <did_template id ="4" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100012.xml"></did_template>
+      <did_template id ="5" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100030.xml"></did_template>
+      <did_template id ="6" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100032.xml"></did_template>
+    </did_templates>
+  
+  <log>
+    <zmqs>
+      <zmq zmqpattern="PULL" zmqsocketaction="bind" zmqsocketaddr="inproc://log"></zmq>
+    </zmqs>
+  </log>
+
+    <!--<listeningitem port="9980" filter="port 9980">
+      <thread threadclass="Capture">
+        <zmqs>
+          <zmq zmqpattern="PUB" zmqsocketaction="bind" zmqsocketaddr="inproc://9980cap_to_parse"></zmq>
+        </zmqs>
+      </thread>
+      <thread threadclass="Parse">
+        <zmqs>
+          <zmq zmqpattern="SUB" zmqsocketaction="connect" zmqsocketaddr="inproc://9980cap_to_parse"></zmq>
+          <zmq zmqpattern="PUSH" zmqsocketaction="connect" zmqsocketaddr="inproc://log"></zmq>
+        </zmqs>
+      </thread>
+    </listeningitem>-->
+  
+  <listeningitem port="9268" filter="port 9268">
+    <thread threadclass="Capture">
+      <zmqs>
+        <zmq zmqpattern="PUB" zmqsocketaction="bind" zmqsocketaddr="inproc://9268cap_to_parse" ></zmq>
+      </zmqs>
+    </thread>
+    <thread threadclass="Parse">
+      <zmqs>
+        <zmq zmqpattern="SUB" zmqsocketaction="connect" zmqsocketaddr="inproc://9268cap_to_parse"></zmq>
+        <zmq zmqpattern="PUSH" zmqsocketaction="connect" zmqsocketaddr="inproc://log"></zmq>
+      </zmqs>
+    </thread>
+  </listeningitem>
+ 
+</listening>

@@ -1,0 +1,1926 @@
+#include <stdlib.h>
+#include <iostream>
+#include "capture.h"
+using namespace std;
+
+pthread_key_t key_cap;
+pthread_once_t init_done = PTHREAD_ONCE_INIT;
+
+map<string, int> logtagmap;
+
+//int set_nonblock_flag(int desc, int value)
+//{
+//    int oldflags = fcntl(desc, F_GETFL,0);
+//    if (oldflags == -1)
+//        return -1;
+//    if(value != 0)
+//        oldflags |= O_NONBLOCK;
+//    else
+//        oldflags &= ~O_NONBLOCK;
+//    return fcntl(desc, F_SETFL, oldflags);
+//}
+
+void thread_init(void)
+{
+    pthread_key_create(&key_cap, NULL);
+}
+
+void *Capture::RunThreadFunc()
+{
+    pthread_detach(pthread_self());
+	zmq::context_t *context = context_;
+
+    string filter = filter_;
+    pcap_if_t * alldevs ;
+    char *errbuf= new char[PCAP_ERRBUF_SIZE];
+    int devsnum= 0;
+    pcap_if_t *d;
+    int i;
+    int inum = adapter_id_;//
+    int len=1024*10;
+    int mode= 1;
+    int timeout=1000;
+    pcap_addr_t *a;
+    struct bpf_program fcode;
+    int filtertag = 0;
+    pcap_if_t *selecteddev;
+    pcap_t *adhandle;
+    unsigned int netmask;
+    InCapThreadParam ictp;
+
+    if(pcap_findalldevs(&alldevs,errbuf) == -1)
+    {
+        cout<<"Error in pcap_findalldevs %s "<<errbuf<<endl;
+        return ((void *)1);
+    }
+
+    //for(d=alldevs; d; d=d->next)
+    //{
+    //    cout<<++devsnum<<". "<<d->name;
+    //    if(d->description)
+    //        cout<<" ("<<d->description<<")"<<endl;
+    //    else
+    //        cout<<" (No description)"<<endl;
+    //}
+
+    //if(inum<1||inum>devsnum)
+    //{
+    //    cout<<"Adapter number "<<inum<<" out of range!"<<endl;
+    //    pcap_freealldevs(alldevs);
+    //    return  ((void *)1);;
+    //}
+    for(selecteddev=alldevs,i=0; i<inum-1; i++,selecteddev=selecteddev->next);
+
+
+    if((adhandle = pcap_open_live(selecteddev->name,len,mode,timeout,errbuf))==NULL)
+    {
+        cout<<"Unable to open the adapter! "<<selecteddev->name<<" is not supported by libpcap or winpcap!"<<endl;
+        pcap_freealldevs(alldevs);
+        return ((void *)1);
+    }
+    else
+    {
+        /* Check the link layer. We support only Ethernet for simplicity. */
+        if(pcap_datalink(adhandle) != DLT_EN10MB)
+        {
+            cout<<"This program works only on Ethernet networks!"<<endl;
+            pcap_freealldevs(alldevs);
+            return ((void *)1);
+        }
+
+        for(a=selecteddev->addresses; a; a=a->next)
+        {
+            if(a->addr->sa_family == AF_INET)
+            {
+
+                netmask = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
+                break;
+            }
+        }
+    }
+
+    //compile the filter
+    if(pcap_compile(adhandle,&fcode,filter.c_str(),1,netmask) < 0)
+    {
+        cout<<"Unable to compile the packet filter. Check the syntax."<<endl;
+        pcap_freealldevs(alldevs);
+        return ((void *)1);
+    }
+
+	//pcap_set_buffer_size(adhandle,1024*1024*500);
+    /*pcap_setbuff(adhandle,1024*1024*10);*/
+	//set the filter
+    if(pcap_setfilter(adhandle, &fcode)<0)
+    {
+        cout<<"Error setting the filter!"<<endl;
+        pcap_freealldevs(alldevs);
+        return ((void *)1);
+    }
+	
+	//pcap_dumper_t * pcap_dumper;
+	//pcap_dumper = pcap_dump_open(adhandle,"pcapdump.txt");
+	//if(pcap_dumper == NULL)
+	//{
+	//	cout<<"error on opening output file"<<endl;
+	//}
+    delete [] errbuf;
+    pcap_freealldevs(alldevs);
+
+//start capture
+    //use pcap_loop
+
+
+    //map<string, int>::iterator it;
+    //it = logtagmap.find(filter);
+    //if(it != logtagmap.end())
+    //{
+    //    filtertag = it->second;
+    //}
+
+    zmq::socket_t sock(*context, this->zmqitems_[0].zmqpattern);
+    if("bind" == this->zmqitems_[0].zmqsocketaction)
+    {
+//        cout<<"bind addr:"<<this->zmqitems_[0].zmqsocketaddr<<endl;
+        sock.bind(this->zmqitems_[0].zmqsocketaddr.c_str());
+    }
+    else if("connect" == this->zmqitems_[0].zmqsocketaction)
+    {
+//        cout<<"connect addr:"<<this->zmqitems_[0].zmqsocketaddr<<endl;
+        sock.connect(this->zmqitems_[0].zmqsocketaddr.c_str());
+    }
+    //ictp.filtertag = filtertag;
+    ictp.sock = &sock;
+    ictp.countnum = 0;
+    ictp.timebase = 0;
+    ictp.timetag = 0;
+    ictp.seqtag = 0;
+    pthread_once(&init_done,thread_init);
+    pthread_setspecific(key_cap,&ictp);
+
+    pcap_loop(adhandle,0,PacketHandler,NULL);
+	
+	//pcap_dump_close(pcap_dumper);
+    return ((void *)0);
+
+////epoll &&dispatch
+////    packhandlerparams p;
+////	p.filter = const_cast<char *>(packetfilter_.c_str());
+////
+////    int i, tag;
+////    int packetnum;
+////    int nfds;
+////    struct epoll_event ev, events[MAX_EVENTS];
+////    int pcapfd = pcap_get_selectable_fd(adhandle_);
+////
+////    if(pcapfd <0)
+////    {
+////        cout<<"can't get pcap fd!"<<endl;
+////        return ;
+////    }
+////    set_nonblock_flag(pcapfd, 1);
+////
+////    int epollfd = epoll_create(MAX_EPOLL_CREATE_SIZE);
+////    ev.events = EPOLLIN ;//| EPOLLET;//EPOLLET
+////    ev.data.fd = pcapfd;
+////
+////    if(epoll_ctl(epollfd, EPOLL_CTL_ADD, pcapfd, &ev) == -1)
+////    {
+////        cout<<"epoll ctr error!"<<endl;
+////        return ;
+////    }
+////
+////    while(1)
+////    {
+////        if((nfds = epoll_wait(epollfd, events, MAX_EVENTS,0)) == 0)
+////        {
+////            continue;
+////        }
+////
+////        if(nfds < 0)
+////        {
+////            cout<<"epoll wait error!"<<endl;
+////            return ;
+////        }
+////        tag = 0;
+////        for(i=0;i<nfds;++i)
+////        {
+////            if(events[i].data.fd == pcapfd)
+////            {
+////                tag =1;
+////            }
+////        }
+////        if(tag == 1)
+////        {
+////            while(packetnum = pcap_dispatch(adhandle_, -1,PacketHandler,((unsigned char *)(&p))) > 0);
+////
+////            if(packetnum < 0)
+////            {
+////                cout<<"dispatch error!"<<endl;
+////                return ;
+////            }
+////        }
+////
+////    }
+//
+////use pcap_next_ex
+////    int res;
+////    struct pcap_pkthdr *header;
+////    const u_char *pkt_data;
+////    char *filter = const_cast<char *>(packetfilter_.c_str());
+////    while((res = pcap_next_ex(adhandle_, &header, &pkt_data))>=0)
+////    {
+////        if(res ==0)
+////                continue;
+////
+////        int ip_data_len = header->len;
+////
+////        if(countnum == 0)
+////        {
+////                itime1=time((time_t*)NULL);
+////                cout<<"first time:"<<itime1<<endl;
+////        }
+////        itime2=time((time_t*)NULL);
+////        if(itime2-itime1 > 120)
+////        {
+////            cout<<"file:"<<filter<<" !!! 2min data len:"<<countnum<<endl;
+////        }
+////        else
+////        {
+////            pthread_mutex_lock(&mutex);
+////            countnum +=ip_data_len;
+////            pthread_mutex_unlock(&mutex);
+////        }
+////
+////    }
+////    if(res == -1)
+////    {
+////        cout<<"error reading the packets"<<endl;
+////    }
+
+}
+
+void PacketHandler(unsigned char *param, const struct pcap_pkthdr *header, const unsigned char *pkt_data)
+{
+	InCapThreadParam * ictp = (static_cast<InCapThreadParam *>(pthread_getspecific(key_cap)));
+	zmq::socket_t *socket_parse = ictp->sock;
+	pcap_work_item item;
+	cout<<"cap"<<endl;
+	//item.filtertag = ictp->filtertag;
+	item.seqtag = (ictp->seqtag)++;
+	//item.header = const_cast<pcap_pkthdr *>(header);
+	//item.data = const_cast<unsigned char *>(pkt_data)
+	item.header = *header;
+	memcpy(item.data, pkt_data, header->caplen);
+	try
+	{
+		zmq::message_t msg_send(sizeof(item));
+		memcpy((void *)(msg_send.data()),&item,sizeof(item));
+		socket_parse->send(msg_send,ZMQ_NOBLOCK);
+	}
+	catch(zmq::error_t error)
+	{
+		cout<<"zmq send error"<<error.what()<<endl;
+	}
+
+  //      ip_head *ih;
+		//unsigned int ip_len;
+		//DC_HEAD *pdch;
+		//udp_head *udph;
+  //      tcp_head *tcph;
+		//int tcp_len;
+  //      ih = (ip_head *)(pkt_data + 14); //14 bytes is the length of ethernet header
+  //      ip_len = (ih->ver_ihl & 0xf) * 4;
+		//
+		//cout<<"pkt_data pointer:"<<hex<<(unsigned int)pkt_data<<endl;
+		////cout<<"addr of pkt_data pointer:"<<(unsigned int)&pkt_data<<endl;
+		//cout<<"caplen:"<<header->caplen<<endl;
+		//if(ih->protocol == TCP)
+		//{
+		//	pcap_dump(param,header,pkt_data);
+		//	cout<<"hello"<<endl;
+		//	return ;
+		//}
+   //     if(ih->protocol == TCP)
+   //     {
+   //         tcph = (tcp_head *) ((unsigned char*)ih + ip_len);
+			//cout<<"tcp seq:"<<tcph->seq<<endl;
+			//tcp_len =  4*((tcph->dataoffset)>>4&0x0f);
+			////cout<<"tcp_len:"<<tcp_len<<endl;
+   //         pdch = (DC_HEAD*)((u_char*)tcph + tcp_len);
+			//
+
+   //         if(DC_TAG == pdch->m_cTag)
+   //         {
+			//	cout<<"length of dc_head+dc_data:"<<dec<<sizeof(DC_HEAD)+pdch->m_nLen<<endl;
+
+   //             InCapThreadParam * ictp = (static_cast<InCapThreadParam *>(pthread_getspecific(key_cap)));
+   //             zmq::socket_t *socket_parse = ictp->sock;
+
+   //             pcap_work_item item;
+   //             item.filtertag = ictp->filtertag;
+   //             item.seqtag = (ictp->seqtag)++;
+   //             //item.header = const_cast<pcap_pkthdr *>(header);
+   //             //item.data = const_cast<unsigned char *>(pkt_data)
+			//	item.header = *header;
+			//	memcpy(item.data, pkt_data, header->caplen);
+   //             try
+   //             {
+			//		zmq::message_t msg_send(sizeof(item));
+			//		memcpy((void *)(msg_send.data()),&item,sizeof(item));
+   //                 socket_parse->send(msg_send,ZMQ_NOBLOCK);
+   //     //            cout<<"cap send"<<endl;
+   //             }
+   //             catch(zmq::error_t error)
+   //             {
+   //                 cout<<"zmq send error"<<error.what()<<endl;
+   //             }
+
+   //             //test cap flow rate
+   //     //        int ip_data_len = item.header->caplen;
+   //             if(ictp->countnum == 0)
+   //             {
+   //                 ictp->timebase = time((time_t)NULL);
+   //     //            cout<<"cap begin counting"<<endl;
+   //             }
+   //             long int timelive = time((time_t *)NULL);
+   //             if(timelive - ictp->timebase > 120 && ictp->timetag == 0)
+   //             {
+   //                 ictp->timetag = 1;
+   //                 cout<<"cap filtertag:"<<item.filtertag<<" !!! 2min packet quanlity:"<<ictp->countnum<<endl<<flush;
+   //             }
+   //             else
+   //             {
+   //                 ictp->countnum = ictp->countnum + 1;
+   //             }
+   //         }
+   //     }
+
+
+
+
+
+//        cout<<"hello"<<endl;
+//        cout<<"---filtertag:"<<filtertag<<endl;
+//        pcap_work_item item;
+//        item.filtertag = filtertag;
+//        item.header = *header;
+//        memcpy(item.data, pkt_data,256);
+
+//        pthread_mutex_lock(&mutex_cp);
+//        dbuf->push_back(item);
+//        pthread_mutex_unlock(&mutex_cp);
+        //66 is the length of header, 136 is the length of dc_dyna
+//        pcap_work_item *item = NULL;
+//        pthread_mutex_lock(&mutex_cp);
+//        try
+//        {
+////            item = (pcap_work_item *)new unsigned char [sizeof(p->filtertag)+sizeof(pcap_pkthdr) + 256];
+//            item = (pcap_work_item *)malloc(sizeof(filtertag)+sizeof(pcap_pkthdr)+256);
+//        }
+//        catch(std::bad_alloc)
+//        {
+//            cout<<"bad alloc"<<endl;
+//            pthread_mutex_unlock(&mutex_cp);
+//            return;
+//        }
+//        pthread_mutex_unlock(&mutex_alloc);
+//        item->filtertag = p->filtertag;
+//        item->header = *header;
+////        memset(item.data,0,512);
+//        memcpy(item->data, pkt_data, 256);
+
+}
+
+
+//----------------------------------------------------------------------------------------------
+//void Capture::set_packetfilter(string &filter)
+//{
+////    packetfilter_ = filter;
+//    tfp_.filter = filter;
+//}
+
+//deque<pcap_work_item> * Capture::get_dbuf()
+//{
+//    return &dbuf_;
+//}
+//
+//ThreadFuncParam * Capture::get_tfp()
+//{
+//    return &tfp_;
+//}
+
+//string PacketCapture::get_packetfilter()
+//{
+//    return packetfilter_;
+//}
+
+//deque<pcap_work_item> * PacketCapture::get_dbuf()
+//{
+//    return dbuf_;
+//}
+
+//void Capture::StartThread(zmq::context_t *context)
+//{
+////    ThreadFuncParam tfp;
+////    tfp.filter = packetfilter_;
+////    cout<<"start thread filter:"<<tfp.filter<<endl;
+////    tfp.dbuf = &dbuf_;
+//
+//
+////        zmq::socket_t socket_parse (*context, ZMQ_PUSH);
+////        socket_parse.connect("inproc://log");
+//    tfp_.context = context;
+//    int err;
+//    err = pthread_create(&tid_,NULL,ThreadFunc,&tfp_);
+//    if(err)
+//    {
+//        cout<<"can't create capture thread!"<<endl;
+//        return ;
+//    }
+////    cout<<"start cap thread"<<endl;
+//}
+
+//void Capture::JoinThread()
+//{
+//    int err;
+//    void * tret;
+//    if(err = pthread_join(tid_,&tret))
+//    {
+//        cout<<"can't join cap thread!"<<endl;
+//        return ;
+//    }
+//}
+
+//void * Capture::ThreadFunc(void * args)
+//{
+////    pid_t pid;
+////    pthread_t tid;
+////    pid = getpid();
+////    tid = pthread_self();
+////    cout<<"pid: "<<pid<<" tid: "<<tid<<endl;
+//
+//    ThreadFuncParams *tfp = static_cast<ThreadFuncParams *>(args);
+//    zmq::context_t *context = tfp->context;
+//
+////    cout<<"hello---------"<<endl;
+////    cout<<"filter:"<<tfp->filter<<endl;
+//    string filter = tfp->filter;
+////    deque<pcap_work_item> *dbuf = tfp->dbuf;
+//    pcap_if_t * alldevs ;
+//    char *errbuf= new char[PCAP_ERRBUF_SIZE];
+//    int devsnum= 0;
+//    pcap_if_t *d;
+//    int i;
+//    int inum = 3;
+//    int len=65536;
+//    int mode= 1;
+//    int timeout=1000;
+//    pcap_addr_t *a;
+//    struct bpf_program fcode;
+//    int filtertag = 0;
+//    pcap_if_t *selecteddev;
+//    pcap_t *adhandle;
+//    unsigned int netmask;
+//    InCapThreadParam ictp;
+//
+//    if(pcap_findalldevs(&alldevs,errbuf) == -1)
+//    {
+//        cout<<"Error in pcap_findalldevs %s "<<errbuf<<endl;
+//        return ((void *)1);
+//    }
+//
+//    for(d=alldevs; d; d=d->next)
+//    {
+//        cout<<++devsnum<<". "<<d->name;
+//        if(d->description)
+//            cout<<" ("<<d->description<<")"<<endl;
+//        else
+//            cout<<" (No description)"<<endl;
+//    }
+//
+//    if(inum<1||inum>devsnum)
+//    {
+//        cout<<"Adapter number out of range!"<<endl;
+//        pcap_freealldevs(alldevs);
+//        return  ((void *)1);;
+//    }
+//    for(selecteddev=alldevs,i=0; i<inum-1; i++,selecteddev=selecteddev->next);
+//
+//
+//    if((adhandle = pcap_open_live(selecteddev->name,len,mode,timeout,errbuf))==NULL)
+//    {
+//        cout<<"Unable to open the adapter! "<<selecteddev->name<<" is not supported by libpcap or winpcap!"<<endl;
+//        pcap_freealldevs(alldevs);
+//        return ((void *)1);
+//    }
+//    else
+//    {
+//        /* Check the link layer. We support only Ethernet for simplicity. */
+//        if(pcap_datalink(adhandle) != DLT_EN10MB)
+//        {
+//            cout<<"This program works only on Ethernet networks!"<<endl;
+//            pcap_freealldevs(alldevs);
+//            return ((void *)1);
+//        }
+//
+//        for(a=selecteddev->addresses; a; a=a->next)
+//        {
+//            if(a->addr->sa_family == AF_INET)
+//            {
+//
+//                netmask = ((struct sockaddr_in *)a->netmask)->sin_addr.s_addr;
+//                break;
+//            }
+//        }
+//    }
+//
+//    //compile the filter
+//    if(pcap_compile(adhandle,&fcode,filter.c_str(),1,netmask) < 0)
+//    {
+//        cout<<"Unable to compile the packet filter. Check the syntax."<<endl;
+//        pcap_freealldevs(alldevs);
+//        return ((void *)1);
+//    }
+//
+//    //set the filter
+//    if(pcap_setfilter(adhandle, &fcode)<0)
+//    {
+//        cout<<"Error setting the filter!"<<endl;
+//        pcap_freealldevs(alldevs);
+//        return ((void *)1);
+//    }
+//
+//    delete [] errbuf;
+//    pcap_freealldevs(alldevs);
+//
+////start capture
+//    //use pcap_loop
+//
+//
+//    map<string, int>::iterator it;
+//    it = logtagmap.find(filter);
+//    if(it != logtagmap.end())
+//    {
+//        filtertag = it->second;
+//    }
+//    string connectaddr = "inproc://port";
+//    stringstream ss;
+//    ss<<filtertag;
+//    connectaddr += ss.str();
+//    zmq::socket_t sock(*context, ZMQ_PAIR);
+//    cout<<"bind add:"<<connectaddr<<endl;
+//    sock.bind(connectaddr.c_str());
+//    ictp.filtertag = filtertag;
+//    ictp.sock = &sock;
+//    ictp.countnum = 0;
+//    ictp.timebase = 0;
+//    ictp.timetag = 0;
+//    ictp.seqtag = 0;
+//    pthread_once(&init_done,thread_init);
+//    pthread_setspecific(key_cap,&ictp);
+//
+//    pcap_loop(adhandle,0,PacketHandler,NULL);
+//
+//    return ((void *)0);
+//
+//////epoll &&dispatch
+//////    packhandlerparams p;
+//////	p.filter = const_cast<char *>(packetfilter_.c_str());
+//////
+//////    int i, tag;
+//////    int packetnum;
+//////    int nfds;
+//////    struct epoll_event ev, events[MAX_EVENTS];
+//////    int pcapfd = pcap_get_selectable_fd(adhandle_);
+//////
+//////    if(pcapfd <0)
+//////    {
+//////        cout<<"can't get pcap fd!"<<endl;
+//////        return ;
+//////    }
+//////    set_nonblock_flag(pcapfd, 1);
+//////
+//////    int epollfd = epoll_create(MAX_EPOLL_CREATE_SIZE);
+//////    ev.events = EPOLLIN ;//| EPOLLET;//EPOLLET
+//////    ev.data.fd = pcapfd;
+//////
+//////    if(epoll_ctl(epollfd, EPOLL_CTL_ADD, pcapfd, &ev) == -1)
+//////    {
+//////        cout<<"epoll ctr error!"<<endl;
+//////        return ;
+//////    }
+//////
+//////    while(1)
+//////    {
+//////        if((nfds = epoll_wait(epollfd, events, MAX_EVENTS,0)) == 0)
+//////        {
+//////            continue;
+//////        }
+//////
+//////        if(nfds < 0)
+//////        {
+//////            cout<<"epoll wait error!"<<endl;
+//////            return ;
+//////        }
+//////        tag = 0;
+//////        for(i=0;i<nfds;++i)
+//////        {
+//////            if(events[i].data.fd == pcapfd)
+//////            {
+//////                tag =1;
+//////            }
+//////        }
+//////        if(tag == 1)
+//////        {
+//////            while(packetnum = pcap_dispatch(adhandle_, -1,PacketHandler,((unsigned char *)(&p))) > 0);
+//////
+//////            if(packetnum < 0)
+//////            {
+//////                cout<<"dispatch error!"<<endl;
+//////                return ;
+//////            }
+//////        }
+//////
+//////    }
+////
+//////use pcap_next_ex
+//////    int res;
+//////    struct pcap_pkthdr *header;
+//////    const u_char *pkt_data;
+//////    char *filter = const_cast<char *>(packetfilter_.c_str());
+//////    while((res = pcap_next_ex(adhandle_, &header, &pkt_data))>=0)
+//////    {
+//////        if(res ==0)
+//////                continue;
+//////
+//////        int ip_data_len = header->len;
+//////
+//////        if(countnum == 0)
+//////        {
+//////                itime1=time((time_t*)NULL);
+//////                cout<<"first time:"<<itime1<<endl;
+//////        }
+//////        itime2=time((time_t*)NULL);
+//////        if(itime2-itime1 > 120)
+//////        {
+//////            cout<<"file:"<<filter<<" !!! 2min data len:"<<countnum<<endl;
+//////        }
+//////        else
+//////        {
+//////            pthread_mutex_lock(&mutex);
+//////            countnum +=ip_data_len;
+//////            pthread_mutex_unlock(&mutex);
+//////        }
+//////
+//////    }
+//////    if(res == -1)
+//////    {
+//////        cout<<"error reading the packets"<<endl;
+//////    }
+//
+//}
+
+
+//void PacketCapture::StartCapture()
+//{
+//    //use loop
+//
+//    int filtertag = 0;
+//    pthread_once(&init_done,thread_init);
+//    pthread_setspecific(key_cap,&filtertag);
+//
+//    map<string, int>::iterator it;
+//	it = logtagmap.find(packetfilter_);
+//	if(it != logtagmap.end())
+//    {
+//        filtertag = it->second;
+//    }
+//
+//    pcap_loop(adhandle_,0,PacketHandler,((unsigned char *)(&dbuf_)));
+//
+////epoll &&dispatch
+////    packhandlerparams p;
+////	p.filter = const_cast<char *>(packetfilter_.c_str());
+////
+////    int i, tag;
+////    int packetnum;
+////    int nfds;
+////    struct epoll_event ev, events[MAX_EVENTS];
+////    int pcapfd = pcap_get_selectable_fd(adhandle_);
+////
+////    if(pcapfd <0)
+////    {
+////        cout<<"can't get pcap fd!"<<endl;
+////        return ;
+////    }
+////    set_nonblock_flag(pcapfd, 1);
+////
+////    int epollfd = epoll_create(MAX_EPOLL_CREATE_SIZE);
+////    ev.events = EPOLLIN ;//| EPOLLET;//EPOLLET
+////    ev.data.fd = pcapfd;
+////
+////    if(epoll_ctl(epollfd, EPOLL_CTL_ADD, pcapfd, &ev) == -1)
+////    {
+////        cout<<"epoll ctr error!"<<endl;
+////        return ;
+////    }
+////
+////    while(1)
+////    {
+////        if((nfds = epoll_wait(epollfd, events, MAX_EVENTS,0)) == 0)
+////        {
+////            continue;
+////        }
+////
+////        if(nfds < 0)
+////        {
+////            cout<<"epoll wait error!"<<endl;
+////            return ;
+////        }
+////        tag = 0;
+////        for(i=0;i<nfds;++i)
+////        {
+////            if(events[i].data.fd == pcapfd)
+////            {
+////                tag =1;
+////            }
+////        }
+////        if(tag == 1)
+////        {
+////            while(packetnum = pcap_dispatch(adhandle_, -1,PacketHandler,((unsigned char *)(&p))) > 0);
+////
+////            if(packetnum < 0)
+////            {
+////                cout<<"dispatch error!"<<endl;
+////                return ;
+////            }
+////        }
+////
+////    }
+//
+////use pcap_next_ex
+////    int res;
+////    struct pcap_pkthdr *header;
+////    const u_char *pkt_data;
+////    char *filter = const_cast<char *>(packetfilter_.c_str());
+////    while((res = pcap_next_ex(adhandle_, &header, &pkt_data))>=0)
+////    {
+////        if(res ==0)
+////                continue;
+////
+////        int ip_data_len = header->len;
+////
+////        if(countnum == 0)
+////        {
+////                itime1=time((time_t*)NULL);
+////                cout<<"first time:"<<itime1<<endl;
+////        }
+////        itime2=time((time_t*)NULL);
+////        if(itime2-itime1 > 120)
+////        {
+////            cout<<"file:"<<filter<<" !!! 2min data len:"<<countnum<<endl;
+////        }
+////        else
+////        {
+////            pthread_mutex_lock(&mutex);
+////            countnum +=ip_data_len;
+////            pthread_mutex_unlock(&mutex);
+////        }
+////
+////    }
+////    if(res == -1)
+////    {
+////        cout<<"error reading the packets"<<endl;
+////    }
+//
+//}
+
+
+//void parsepacket()
+//{
+//    while(1)
+//    {
+//        pthread_mutex_lock(&mutex_parse);
+//        if(!dbuf_parse.empty())
+//        {
+//            pcap_work_item item = dbuf_parse.front();
+//            dbuf_parse.pop_front();
+//            pthread_mutex_unlock(&mutex_parse);
+//            cout<<"parse size:"<<dbuf_parse.size()<<endl;
+//            int filtertag = item.filtertag;
+//            struct pcap_pkthdr *header = &(item.header);
+//            unsigned char *pkt_data = item.data;
+//
+//            struct tm *ltime;
+//            char *iproto;
+//            ip_head *ih;
+//            udp_head *udph;
+//            tcp_head *tcph;
+//            u_int ip_len;
+//            u_int ip_data_len;
+//            unsigned short sport,dport;
+//            time_t local_tv_sec;
+//            char *netflags;
+//            char *dctype;
+//            dc_head dchpd;
+//            unsigned char *dc_addr;
+//            unsigned char *dctype_instance_addr;
+//            unsigned char *stkd_addr;
+//            unsigned char uc_tag;
+//            unsigned char uc_type;
+//            uint24 *n_len;
+//            uint24 *n_seq;
+//            dc_keepalive keepalive;
+//            dc_login login;
+//            dc_reqpass reqpass;
+//            dc_userpass userpass;
+//            dc_ready ready;
+//            dc_stkstatic stkstatic;
+//            dc_rawdata rawdata;
+//            stk_static *stks;
+//            uint24 *lastrcvseq;
+//            unsigned short lrs_low;
+//            unsigned char lrs_high;
+//            dc_stkdyna dcstkdyna;
+//            stk_dyna stkd;
+//            time_t stkd_dealtime;
+//
+//            static int tcpconntag=0;
+//            static int tagscount=0;
+//
+//            bufelement info;
+//
+////            cout<<"cap_len:"<<header->caplen<<endl;
+//            /* retrieve the position of the ip header */
+//            ih = (ip_head *) (pkt_data +
+//                14); //length of ethernet header
+//
+//            /* retrieve the position of the protocol(tcp, udp) header */
+//            ip_len = (ih->ver_ihl & 0xf) * 4;
+//
+//            switch(ih->proto)
+//            {
+//            case TCP:
+//                tcph = (tcp_head *) ((unsigned char*)ih + ip_len);
+//                iproto = "TCP";
+//                /* convert from network byte order to host byte order */
+//                sport = ntohs( tcph->sport );
+//                dport = ntohs( tcph->dport );
+//                netflags = Utils::tcp_flag_to_str(tcph->flags);
+//
+//                if(SYN == tcph->flags)
+//                {
+//                    tcpconntag = 1;
+//                    tagscount = 0;
+//                }
+//                if(1 == tcpconntag)
+//                {
+//                    if(SYN == tcph->flags)
+//                    {
+//                        tagscount |= 0x1;
+//                    }
+//                    else if(SYNACK == tcph->flags)
+//                    {
+//                        tagscount |= 0x2;
+//                    }
+//                    else if(ACK == tcph->flags)
+//                    {
+//                        tagscount |= 0x4;
+//                        tcpconntag = 0;
+//                    }
+//                    else
+//                    {
+//                        tcpconntag = 0;
+//                        tagscount = 0;
+//                    }
+//                    if(0 == tcpconntag&&7 == tagscount)
+//                    {
+//                        cout<<"TCP connected!"<<endl;
+//        //                log.info("TCP connected!");
+//                        tcpconntag = 0;
+//                        tagscount = 0;
+//                    }
+//                    else if(0 == tcpconntag&&7 != tagscount)
+//                    {
+//                        cout<<"TCP can't connect!"<<endl;
+//        //                log.info("TCP can't connect!");
+//                        tcpconntag = 0;
+//                        tagscount = 0;
+//                    }
+//                }
+//
+//                ip_data_len = header->len;
+//
+////                    if(ip_data_len < 14 + ip_len + 4*((tcph->dataoffset)>>4&0x0f) + 122)
+////                    {
+//////                        cout<<"length:"<<ip_data_len<<endl;//66,just has the package header.
+////                        delete [] item;
+////                        pthread_mutex_lock(&mutex_parse);
+////                        dbuf_parse.pop_front();
+////                        pthread_mutex_unlock(&mutex_parse);
+////                        continue;
+////                    }
+//        //
+//                //test
+//                /* convert the timestamp to readable format */
+//        //        local_tv_sec = header->ts.tv_sec;
+//        //        ltime=localtime(&local_tv_sec);
+//        //        dctype = "test";
+//        ////        infotos(ltime,iproto,ih,sport,dport,ip_data_len,netflags,dctype);
+//        //        cout<<"test"<<endl;
+//        //        break;
+//
+//                //dch = (DC_HEAD*)((u_char*)tcph + 4*((tcph->dataoffset)>>4&0x0f));
+//                dc_addr = (unsigned char*)tcph + 4*((tcph->dataoffset)>>4&0x0f);
+//                dchpd.set_tag(dc_addr,1);
+//                uc_tag = static_cast<int>(*(dchpd.tag().c_str()));
+//        //		cout<<"uc_tag:0x"<<hex<<uc_tag<<endl;
+//                dchpd.set_type(dc_addr+sizeof(char),1);
+//                uc_type = static_cast<int>(*(dchpd.type().c_str()));
+//        //		cout<<"uc_type:"<<uc_type<<endl;
+//                dchpd.set_attrib(dc_addr+sizeof(char)*2,2);
+//        //        cout<<"us_attrib:"<<*((short *)(dchpd.attrib().c_str()))<<endl;
+//
+//                n_len = dchpd.add_len();
+//                n_len->set_low(dc_addr+sizeof(char)*2+sizeof(short),2);
+//        //		cout<<"len_low:"<<*((short *)(n_len->low().c_str()))<<endl;
+//                n_len->set_high(dc_addr+sizeof(char)*2+sizeof(short)*2,1);
+//        //        cout<<"len_high:"<<(int)(*(n_len->high().c_str()))<<endl;
+//
+//                n_seq = dchpd.add_seq();
+//                n_seq->set_low(dc_addr+sizeof(char)*3+sizeof(short)*2,2);
+//
+//        //        cout<<"seq_low:"<<*(n_seq->low().c_str())<<endl;
+//                n_seq->set_high(dc_addr+sizeof(char)*3+sizeof(short)*3,1);
+//
+//        //        cout<<"seq_high:"<<(int)(*(n_seq->high().c_str()))<<endl;
+//
+//                dctype_instance_addr = dc_addr+sizeof(char)*4+sizeof(short)*3;
+//
+//                if(DC_TAG== uc_tag)
+//                {
+//                    if(DCT_NUL == uc_type)
+//                        dctype = "DCT_NUL";
+//                    else if(DCT_KEEPALIVE == uc_type)
+//                    {
+//                        cout<<"keepalive"<<endl;
+//                         dctype = "DCT_KEEPALIVE";
+//                         lastrcvseq = keepalive.add_lastrcvseq();
+//                         lastrcvseq->set_low(dctype_instance_addr,2);
+//                         lrs_low = *((short*)(lastrcvseq->low().c_str()));
+//        //                 cout<<"lrs_low:"<<lrs_low<<endl;
+//                         //log.info("lrs_low:%u",lrs_low);
+//                         lastrcvseq->set_high(dctype_instance_addr+sizeof(lrs_low),1);
+//                         lrs_high = *(lastrcvseq->high().c_str());
+//        //                 cout<<"lrs_high:0x"<<hex<<(int)lrs_high<<endl;
+//                         //log.info("lrs_high:%u",(int)lrs_high);
+//                        // info.filter = filter;
+//                        // info.dctype = dctype;
+//                        cout<<"hello"<<endl;
+//                    }
+//                    else if(DCT_LOGIN == uc_type)
+//                    {
+//                        dctype = "DCT_LOGIN";
+//
+//                        login.set_marketid(dctype_instance_addr,2);
+//                        login.set_marketname(dctype_instance_addr+2,32);
+//                        login.set_numopenclosetime(dctype_instance_addr+38,2);
+//                        login.set_timezone(*((int *)(dctype_instance_addr+34)));
+//                        login.set_opentime(dctype_instance_addr+40,2*8);
+//                        login.set_closetime(dctype_instance_addr+56,2*8);
+//                        login.set_attrib(*((unsigned int *)(dctype_instance_addr+72)));
+//                        login.set_priority(dctype_instance_addr+76,2);
+//
+//        //                cout<<"marketid:"<<*((unsigned short *)(login.marketid().c_str()))<<endl;
+//        //                cout<<"marketname:"<<login.marketname().c_str()<<endl;
+//        //                cout<<"timezone:"<<login.timezone()<<endl;
+//        //                cout<<"numopenclosetime:"<<*((unsigned short *)(login.numopenclosetime().c_str()))<<endl;
+//
+//                        //log.info("marketid:%u",*((unsigned short *)(login.marketid().c_str())));
+//
+//                        unsigned short *a = (unsigned short *)(login.opentime().c_str());
+//                        unsigned short *b = (unsigned short *)(login.closetime().c_str());
+//                        for(int i=0;i<8;i++)
+//                        {
+//        //                    cout<<"opentime:"<<*a++<<endl;
+//        //                    cout<<"closetime:"<<*b++<<endl;
+//                            //log.info("opentime:%u",*a++);
+//                            //log.info("closetime:%u",*b++);
+//                        }
+//
+//        //                cout<<"attrib:"<<login.attrib()<<endl;
+//        //                cout<<"priority:"<<*((unsigned short *)(login.priority().c_str()))<<endl;
+//                    }
+//                    else if(DCT_REQPASS == uc_type)
+//                    {
+//                        dctype = "DCT_REQPASS";
+//                        reqpass.set_encytype((dc_ency_type)(*((int *)(dctype_instance_addr))));
+//                        reqpass.set_key(*((unsigned long long *)(dctype_instance_addr+4)));
+//
+//        //                cout<<"encytype:"<<reqpass.encytype()<<endl;
+//        //                cout<<"key:"<<reqpass.key()<<endl;
+//        //                log.info("encytype:%d",reqpass.encytype());
+//                    }
+//                    else if(DCT_USERnPASS == uc_type)
+//                    {
+//                        dctype = "DCT_USERnPASS";
+//                        userpass.set_user(dctype_instance_addr,16);
+//                        userpass.set_pass(dctype_instance_addr+16,24);
+//
+//        //                cout<<"user:"<<userpass.user()<<endl;
+//        //                cout<<"pass:"<<userpass.pass()<<endl;
+//        //                log.info("user:%s",userpass.user().c_str());
+//                    }
+//                    else if (DCT_READY == uc_type)
+//                    {
+//                        dctype = "DCT_READY";
+//                        ready.set_instruct(*((dc_ready_dc_instruct *)dctype_instance_addr));
+//                        ready.set_errcode(*((dc_ready_dc_error *)(dctype_instance_addr+4)));
+//                        ready.set_delayconnecttime(*((unsigned long *)(dctype_instance_addr+8)));
+//                        ready.set_staticlabversion((*((unsigned long *)(dctype_instance_addr+12))));
+//                        ready.set_compress(*((unsigned int*)(dctype_instance_addr+16)));
+//
+//        //                ready.set_dataencytype(*((dc_ency_type *)(dctype_instance_addr+20)));
+//                        ready.set_datakey(*((unsigned long long *)(dctype_instance_addr+24)));
+//
+//        //                cout<<"instruct:"<<ready.instruct()<<endl;
+//        //                cout<<"errcode:"<<ready.errcode()<<endl;
+//        //                cout<<"delayconnecttime:"<<ready.delayconnecttime()<<endl;
+//        //                cout<<"staticlabversion:"<<ready.staticlabversion()<<endl;
+//        //                cout<<"compress:"<<ready.compress()<<endl;
+//        //                cout<<"dataencytype:"<<*((unsigned int *)(dctype_instance_addr+20))<<endl;
+//        ////                cout<<"dataencytype:"<<ready.dataencytype()<<endl;
+//        //                cout<<"datakey:"<<ready.datakey()<<endl;
+//
+//                        //log.info("instruct:%d",ready.instruct());
+//                    }
+//                    else if(DCT_RESEND == uc_type)
+//                    {
+//                        dctype = "DCT_RESEND";
+//                    }
+//                    else if(DCT_STKSTATIC == uc_type)
+//                    {
+//                        dctype = "DCT_STKSTATIC";
+//                        stkstatic.set_version(*(unsigned int*)dctype_instance_addr);
+//                        stkstatic.set_attrib(dctype_instance_addr+4,2);
+//                        stkstatic.set_day(*(unsigned int *)(dctype_instance_addr+6));
+//                        stkstatic.set_num(dctype_instance_addr+10,2);
+//                        stks = stkstatic.add_data();
+//                        stks->set_stkid(dctype_instance_addr+12,2);
+//                        stks->set_strlabel(dctype_instance_addr+14,10);
+//                        stks->set_strname(dctype_instance_addr+24,32);
+//                        stks->set_type(dctype_instance_addr+56,1);
+//                        stks->set_pricedigit(dctype_instance_addr+57,1);
+//                        stks->set_floatissued(*(unsigned int *)(dctype_instance_addr+58));
+//                        stks->set_totalissued(*(unsigned int *)(dctype_instance_addr+62));
+//                        stks->set_lastclose(*(unsigned long *)(dctype_instance_addr+66));
+//                        stks->set_advstop(*(unsigned long *)(dctype_instance_addr+70));
+//                        stks->set_decstop(*(unsigned long *)(dctype_instance_addr+74));
+//
+//                        //log.info("static version:%d",stkstatic.version());
+//        //                cout<<"static version:"<<stkstatic.version()<<endl;
+//        //                cout<<"static attrib:"<<*((short *)(stkstatic.attrib().c_str()))<<endl;
+//        //                cout<<"static day:"<<stkstatic.day()<<endl;
+//        //                cout<<"static num:"<<stkstatic.num()<<endl;
+//        //                cout<<"static stkid:"<<(*((short *)(stks->stkid().c_str())))<<endl;
+//        //                cout<<"static strlabel:"<<stks->strlabel().c_str()<<endl;
+//        //                cout<<"static strname:"<<stks->strname().c_str()<<endl;
+//        //                cout<<"static type:"<<static_cast<unsigned int>(*(stks->type().c_str()))<<endl;
+//        //                cout<<"static pricedigit:"<<static_cast<unsigned int>(*(stks->pricedigit().c_str()))<<endl;
+//        //                cout<<"static floatissued:"<<stks->floatissued()<<endl;
+//        //                cout<<"static totalissued:"<<stks->totalissued()<<endl;
+//        //                cout<<"static lastclose:"<<stks->lastclose()<<endl;
+//        //                cout<<"static advstop:"<<stks->advstop()<<endl;
+//        //                cout<<"staitc decstop:"<<stks->decstop()<<endl;
+//
+//                    }
+//                else if(DCT_STKDYNA == uc_type)
+//                    {
+//                        dctype = "DCT_STKDYNA";
+//
+//        //        //test
+//        //
+//        //                pthread_params *pp;
+//        //                int timelive;
+//        //                pp = static_cast<pthread_params *>(pthread_getspecific(key_cap));
+//        //                if(pp->countnum == 0)
+//        //                {
+//        //                    pp->timebase = time((time_t)NULL);
+//        //                }
+//        //                timelive = time((time_t *)NULL);
+//        //                if(timelive - pp->timebase > 300 && pp->timetag == 0)
+//        //                {
+//        //                    pp->timetag = 1;
+//        //                    cout<<"file:"<<filtertag<<" !!! 10min data len:"<<pp->countnum<<endl;
+//        //                }
+//        //                else
+//        //                {
+//        //                    pp->countnum = pp->countnum + ip_data_len;
+//        //                }
+//
+//
+//                        dcstkdyna.set_dynaseq(dctype_instance_addr,2);
+//                        //log.info("stkd_seq:%u",*((unsigned short *)(dcstkdyna.dynaseq().c_str())));
+//        //                cout<<"stkd_seq:"<<dec<<*((unsigned short *)(dcstkdyna.dynaseq().c_str()))<<endl;
+//                        dcstkdyna.set_num(dctype_instance_addr+sizeof(short),2);
+//        //                cout<<"stkd_num:"<<*((unsigned short *)(dcstkdyna.num().c_str()))<<endl;
+//
+//                        stkd_addr = dctype_instance_addr+sizeof(short)*2;
+//                        stkd.set_stkid(stkd_addr,2);
+//        //                cout<<"stkdid:"<<*((unsigned short *)stkd.stkid().c_str())<<endl;
+//
+//                        stkd.set_time(*((time_t *)(stkd_addr+sizeof(short))));
+//                        //log.info("stkd_dealtime:%lld",stkd.time());
+//        //                cout<<"stkd_dealtime:"<<stkd.time()<<endl;
+//        //
+//        //                cout<<"dealtime:"<<ctime(&stkd_dealtime);
+//
+//                        stkd.set_open(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t))));
+//        //                cout<<"stkd_open:"<<stkd.open()<<endl;
+//
+//                        stkd.set_high(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long))));
+//        //                cout<<"stkd_high:"<<stkd.high()<<endl;
+//
+//                        stkd.set_low(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*2)));
+//        //                cout<<"stkd_low:"<<stkd.low()<<endl;
+//
+//                        stkd.set_new_(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*3)));
+//        //                cout<<"stkd_new:"<<stkd.new_()<<endl;
+//
+//                        stkd.set_volume(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*4)));
+//        //                cout<<"stkd_vol:"<<stkd.volume()<<endl;
+//        //                cout<<"vol_getvalue:"<<Utils::mword_type_val(stkd.volume())<<endl;
+//
+//                        stkd.set_amount(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*5)));
+//        //                cout<<"stkd_amount:"<<stkd.amount()<<endl;
+//        //                cout<<"amount_getvalue:"<<Utils::mword_type_val(stkd.amount())<<endl;
+//
+//                        stkd.set_innervol(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*6)));
+//        //                cout<<"stkd_innervol:"<<stkd.innervol()<<endl;
+//        //                cout<<"innervol_getvalue:"<<Utils::mword_type_val(stkd.innervol())<<endl;
+//
+//                        stkd.set_tickcount(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*7)));
+//        //                cout<<"stkd_tickcount:"<<stkd.tickcount()<<endl;
+//
+//                        stkd.set_buyprice(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*8,20);
+//                        unsigned long *ptr = (unsigned long *)(stkd.buyprice().c_str());
+//        //                for(int i=0;i<5;i++,ptr++)
+//        //                {
+//        //                    cout<<"stkd_buyprice:"<<i<<" "<<*ptr<<endl;
+//        //                }
+//
+//                        stkd.set_buyvol(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*13,20);
+//                        ptr = (unsigned long *)(stkd.buyvol().c_str());
+//        //                for(int i=0;i<5;i++,ptr++)
+//        //                {
+//        //                    cout<<"stkd_buyvol:"<<i<<" "<<*ptr<<endl;
+//        //                }
+//
+//                        stkd.set_sellprice(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*18,20);
+//                        ptr=(unsigned long*)(stkd.sellprice().c_str());
+//        //                for(int i=0;i<5;i++,ptr++)
+//        //                {
+//        //                    cout<<"stkd_sellprice:"<<i<<" "<<*ptr<<endl;
+//        //                }
+//
+//                        stkd.set_sellvol(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*23,20);
+//                        ptr=(unsigned long*)(stkd.sellvol().c_str());
+////                        for(int i=0;i<5;i++)
+////                        {
+////                            cout<<"stkd_sellvol:"<<i<<" "<<*ptr<<endl;
+////                        }
+//
+//                        stkd.set_openinterest(*((unsigned long *)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*28)));
+////                        cout<<"stkd_openinterest:"<<stkd.openinterest()<<endl;
+//
+//                        stkd.set_settleprice(*((unsigned long *)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*29)));
+////                        cout<<"stkd_settleprice:"<<stkd.settleprice()<<endl;
+//                    }
+//                    else if(DCT_SHL2_MMPEx == uc_type)
+//                    {
+//                        dctype = "DCT_SHL2_MMPEx";
+//                    }
+//                    else if(DCT_SHL2_REPORT == uc_type)
+//                    {
+//                        dctype = "DCT_SHL2_REPORT";
+//                    }
+//                    else if(DCT_SHL2_BIG_WD == uc_type)
+//                    {
+//                        dctype = "DCT_SHL2_BIG_WD";
+//                    }
+//                    else if(DCT_SHL2_ACCU_WD == uc_type)
+//                    {
+//                        dctype = "DCT_SHL2_ACCU_WD";
+//                    }
+//                    else if(DCT_HK_STATIC == uc_type)
+//                    {
+//                        dctype = "DCT_HK_STATIC";
+//                    }
+//                    else if(DCT_HK_DYNA == uc_type)
+//                    {
+//                        dctype = "DCT_HK_DYNA";
+//                    }
+//                    else if(DCT_XML == uc_type)
+//                    {
+//                        dctype = "DCT_XML";
+//                    }
+//                    else if(DCT_SHL2_QUEUE == uc_type)
+//                    {
+//                        dctype = "DCT_SHL2_QUEUE";
+//                    }
+//                    else if(DCT_GENERAL == uc_type)
+//                    {
+//                        dctype = "DCT_GENERAL";
+//                    }
+//                    else if(DCT_USERSTAT == uc_type)
+//                    {
+//                        dctype = "DCT_USERSTAT";
+//                    }
+//                    else if(DCT_RAWDATA == uc_type)
+//                    {
+//                        dctype = "DCT_RAWDATA";
+//                        rawdata.set_marketid(dctype_instance_addr,2);
+//                        rawdata.set_filename(dctype_instance_addr+2,14);
+//                        rawdata.set_attrib(*((unsigned long *)(dctype_instance_addr+16)));
+//                        rawdata.set_version(*((unsigned long *)(dctype_instance_addr+20)));
+//                        rawdata.set_rawdatalen(*((unsigned long *)(dctype_instance_addr+24)));
+//                        rawdata.set_datalen(*((unsigned long *)(dctype_instance_addr+28)));
+//                        rawdata.set_data(dctype_instance_addr+32,1);
+//
+//                        //log.info("raw marketid:%u",(unsigned short)(*(rawdata.marketid().c_str())));
+//                        //log.info("raw filename:%s",rawdata.filename().c_str());
+//
+//        //                cout<<"raw marketid:"<<(unsigned short)(*(rawdata.marketid().c_str()))<<endl;
+//        //                cout<<"raw filename:"<<rawdata.filename()<<endl;
+//        //                cout<<"raw attrib:"<<rawdata.attrib()<<endl;
+//        //                cout<<"raw version:"<<rawdata.version()<<endl;
+//        //                cout<<"raw rawlen:"<<rawdata.rawdatalen()<<endl;
+//        //                cout<<"raw datalen:"<<rawdata.datalen()<<endl;
+//        //                cout<<"raw data:"<<(unsigned int)(*(rawdata.data().c_str()))<<endl;
+//                    }
+//                    else if(DCT_NEWS == uc_type)
+//                    {
+//                        dctype = "DCT_NEWS";
+//                    }
+//                    else if(DCT_SZL2_ORDER_QUEUE == uc_type)
+//                    {
+//                        dctype = "DCT_SZL2_ORDER_QUEUE";
+//                    }
+//                    else if(DCT_SZL2_ORDER_STAT == uc_type)
+//                    {
+//                        dctype = "DCT_SZL2_ORDER_STAT";
+//                    }
+//                    else if(DCT_SZL2_FULL_ORDER == uc_type)
+//                    {
+//                        dctype = "DCT_SZL2_FULL_ORDER";
+//                    }
+//                    else if(DCT_SZL2_FULL_TRADE == uc_type)
+//                    {
+//                        dctype = "DCT_SZL2_FULL_TRADE";
+//                    }
+//                    else
+//                        dctype = "UNKNOW";
+//
+//                    /* convert the timestamp to readable format */
+//                    local_tv_sec = header->ts.tv_sec;
+//                    ltime=localtime(&local_tv_sec);
+//
+//        //            infotos(ltime,iproto,ih,sport,dport,ip_data_len,netflags,dctype);
+//
+//                    if (iproto != "")
+//                    {
+//                        char timestr[16];
+//                        strftime(timestr, sizeof timestr, "%H:%M:%S", ltime);
+//                        info.filtertag = filtertag;
+//                        info.timestamp = timestr;
+//                        info.len = ip_data_len;
+//                        info.iproto = iproto;
+//                        info.saddrbyte1 = ih->saddr.byte1;
+//                        info.saddrbyte2 = ih->saddr.byte2;
+//                        info.saddrbyte3 = ih->saddr.byte3;
+//                        info.saddrbyte4 = ih->saddr.byte4;
+//                        info.sport = sport;
+//                        info.daddrbyte1 = ih->daddr.byte1;
+//                        info.daddrbyte2 = ih->daddr.byte2;
+//                        info.daddrbyte3 = ih->daddr.byte3;
+//                        info.daddrbyte4 = ih->daddr.byte4;
+//                        info.dport = dport;
+//                        info.flags = netflags;
+//                        info.dctype = dctype;
+//
+//                        pthread_mutex_lock(&mutex);
+//                        dbuf.push_back(info);
+//                        pthread_mutex_unlock(&mutex);
+////                        delete[] item;
+//
+//                    }
+//                }
+//                break;
+//            case UDP:
+//                udph = (udp_head *) ((unsigned char*)ih + ip_len);
+//                iproto = "UDP";
+//                /* convert from network byte order to host byte order */
+//                sport = ntohs( udph->sport );
+//                dport = ntohs( udph->dport );
+//                break;
+//            default:
+//                iproto = "";
+//                break;
+//            }
+//
+//
+//
+//        }
+//        else
+//        {
+//            pthread_mutex_unlock(&mutex_parse);
+//        }
+//    }
+//
+//
+//}
+
+
+
+//class IInputor
+//{
+//process_data( const unsigned char *data,  int len )
+//{
+//    this->put()//扔到队列
+//};
+//
+//ACE_Task//线程
+//{
+// int svc();
+//}
+
+
+////no log no parse
+//{
+//        //test
+////        cout<<"pkt_data addr:"<<hex<<static_cast<const void *>(pkt_data)<<endl;
+//
+//
+//        packhandlerparams *p = (packhandlerparams *)param;
+//        char *filter = p->filter;
+//        int ip_data_len = header->len;
+//        pthread_params *pp;
+//        int timelive;
+//        pp = static_cast<pthread_params *>(pthread_getspecific(key_cap));
+//        if(pp->countnum == 0)
+//        {
+//            pp->timebase = time((time_t)NULL);
+//        }
+//        timelive = time((time_t *)NULL);
+//        if(timelive - pp->timebase > 120 && pp->timetag == 0)
+//        {
+//            pp->timetag = 1;
+//            cout<<"file:"<<filter<<" !!! 2min data len:"<<pp->countnum<<endl;
+//        }
+//        else
+//        {
+//            pp->countnum = pp->countnum + ip_data_len;
+//        }
+//
+//}
+//
+
+//
+//{
+//	struct tm *ltime;
+//	char *iproto;
+//	ip_head *ih;
+//	udp_head *udph;
+//	tcp_head *tcph;
+//	u_int ip_len;
+//	u_int ip_data_len;
+//	unsigned short sport,dport;
+//	time_t local_tv_sec;
+//	char *netflags;
+//	char *dctype;
+//	dc_head dchpd;
+//	unsigned char *dc_addr;
+//	unsigned char *dctype_instance_addr;
+//	unsigned char *stkd_addr;
+//	unsigned char uc_tag;
+//	unsigned char uc_type;
+//	uint24 *n_len;
+//	uint24 *n_seq;
+//	dc_keepalive keepalive;
+//	dc_login login;
+//	dc_reqpass reqpass;
+//	dc_userpass userpass;
+//	dc_ready ready;
+//	dc_stkstatic stkstatic;
+//	dc_rawdata rawdata;
+//	stk_static *stks;
+//	uint24 *lastrcvseq;
+//	unsigned short lrs_low;
+//	unsigned char lrs_high;
+//	dc_stkdyna dcstkdyna;
+//    stk_dyna stkd;
+//    time_t stkd_dealtime;
+//
+//    static int tcpconntag=0;
+//    static int tagscount=0;
+//
+//    bufelement info;
+//
+//	/*
+//	 * unused parameter
+//	 */
+////	(void)(param);
+//
+//    //char * filter = (char *)param;
+//	packhandlerparams *p = (packhandlerparams *)param;
+//	char *filter = p->filter;
+////	int countnum = p->countnum;
+////	long int itime1 = p->itime1;
+////	long int itime2 = p->itime2;
+//
+//	/* retrieve the position of the ip header */
+//	ih = (ip_head *) (pkt_data +
+//		14); //length of ethernet header
+//
+//	/* retrieve the position of the protocol(tcp, udp) header */
+//	ip_len = (ih->ver_ihl & 0xf) * 4;
+//
+//	switch(ih->proto)
+//	{
+//	case TCP:
+//		tcph = (tcp_head *) ((unsigned char*)ih + ip_len);
+//		iproto = "TCP";
+//		/* convert from network byte order to host byte order */
+//		sport = ntohs( tcph->sport );
+//		dport = ntohs( tcph->dport );
+//		netflags = Utils::tcp_flag_to_str(tcph->flags);
+//
+//		if(SYN == tcph->flags)
+//        {
+//            tcpconntag = 1;
+//            tagscount = 0;
+//        }
+//        if(1 == tcpconntag)
+//        {
+//            if(SYN == tcph->flags)
+//            {
+//                tagscount |= 0x1;
+//            }
+//            else if(SYNACK == tcph->flags)
+//            {
+//                tagscount |= 0x2;
+//            }
+//            else if(ACK == tcph->flags)
+//            {
+//                tagscount |= 0x4;
+//                tcpconntag = 0;
+//            }
+//            else
+//            {
+//                tcpconntag = 0;
+//                tagscount = 0;
+//            }
+//            if(0 == tcpconntag&&7 == tagscount)
+//            {
+//                cout<<"TCP connected!"<<endl;
+////                log.info("TCP connected!");
+//                tcpconntag = 0;
+//                tagscount = 0;
+//            }
+//            else if(0 == tcpconntag&&7 != tagscount)
+//            {
+//                cout<<"TCP can't connect!"<<endl;
+////                log.info("TCP can't connect!");
+//                tcpconntag = 0;
+//                tagscount = 0;
+//            }
+//        }
+//
+//		ip_data_len = header->len;
+//
+//
+////
+//        //test
+//        /* convert the timestamp to readable format */
+////        local_tv_sec = header->ts.tv_sec;
+////        ltime=localtime(&local_tv_sec);
+////        dctype = "test";
+//////        infotos(ltime,iproto,ih,sport,dport,ip_data_len,netflags,dctype);
+////        cout<<"test"<<endl;
+////        break;
+//
+//		//dch = (DC_HEAD*)((u_char*)tcph + 4*((tcph->dataoffset)>>4&0x0f));
+//        dc_addr = (unsigned char*)tcph + 4*((tcph->dataoffset)>>4&0x0f);
+//        dchpd.set_tag(dc_addr,1);
+//        uc_tag = static_cast<int>(*(dchpd.tag().c_str()));
+////		cout<<"uc_tag:0x"<<hex<<uc_tag<<endl;
+//        dchpd.set_type(dc_addr+sizeof(char),1);
+//        uc_type = static_cast<int>(*(dchpd.type().c_str()));
+////		cout<<"uc_type:"<<uc_type<<endl;
+//		dchpd.set_attrib(dc_addr+sizeof(char)*2,2);
+////        cout<<"us_attrib:"<<*((short *)(dchpd.attrib().c_str()))<<endl;
+//
+//		n_len = dchpd.add_len();
+//		n_len->set_low(dc_addr+sizeof(char)*2+sizeof(short),2);
+////		cout<<"len_low:"<<*((short *)(n_len->low().c_str()))<<endl;
+//		n_len->set_high(dc_addr+sizeof(char)*2+sizeof(short)*2,1);
+////        cout<<"len_high:"<<(int)(*(n_len->high().c_str()))<<endl;
+//
+//        n_seq = dchpd.add_seq();
+//        n_seq->set_low(dc_addr+sizeof(char)*3+sizeof(short)*2,2);
+//
+////        cout<<"seq_low:"<<*(n_seq->low().c_str())<<endl;
+//        n_seq->set_high(dc_addr+sizeof(char)*3+sizeof(short)*3,1);
+//
+////        cout<<"seq_high:"<<(int)(*(n_seq->high().c_str()))<<endl;
+//
+//        dctype_instance_addr = dc_addr+sizeof(char)*4+sizeof(short)*3;
+//
+//		if(DC_TAG== uc_tag)
+//        {
+//            if(DCT_NUL == uc_type)
+//                dctype = "DCT_NUL";
+//            else if(DCT_KEEPALIVE == uc_type)
+//            {
+//				cout<<"keepalive"<<endl;
+//                 dctype = "DCT_KEEPALIVE";
+//                 lastrcvseq = keepalive.add_lastrcvseq();
+//                 lastrcvseq->set_low(dctype_instance_addr,2);
+//                 lrs_low = *((short*)(lastrcvseq->low().c_str()));
+////                 cout<<"lrs_low:"<<lrs_low<<endl;
+//                 //log.info("lrs_low:%u",lrs_low);
+//                 lastrcvseq->set_high(dctype_instance_addr+sizeof(lrs_low),1);
+//                 lrs_high = *(lastrcvseq->high().c_str());
+////                 cout<<"lrs_high:0x"<<hex<<(int)lrs_high<<endl;
+//                 //log.info("lrs_high:%u",(int)lrs_high);
+//                // info.filter = filter;
+//                // info.dctype = dctype;
+//				cout<<"hello"<<endl;
+//            }
+//            else if(DCT_LOGIN == uc_type)
+//            {
+//                dctype = "DCT_LOGIN";
+//
+//                login.set_marketid(dctype_instance_addr,2);
+//                login.set_marketname(dctype_instance_addr+2,32);
+//                login.set_numopenclosetime(dctype_instance_addr+38,2);
+//                login.set_timezone(*((int *)(dctype_instance_addr+34)));
+//                login.set_opentime(dctype_instance_addr+40,2*8);
+//                login.set_closetime(dctype_instance_addr+56,2*8);
+//                login.set_attrib(*((unsigned int *)(dctype_instance_addr+72)));
+//                login.set_priority(dctype_instance_addr+76,2);
+//
+////                cout<<"marketid:"<<*((unsigned short *)(login.marketid().c_str()))<<endl;
+////                cout<<"marketname:"<<login.marketname().c_str()<<endl;
+////                cout<<"timezone:"<<login.timezone()<<endl;
+////                cout<<"numopenclosetime:"<<*((unsigned short *)(login.numopenclosetime().c_str()))<<endl;
+//
+//                //log.info("marketid:%u",*((unsigned short *)(login.marketid().c_str())));
+//
+//                unsigned short *a = (unsigned short *)(login.opentime().c_str());
+//                unsigned short *b = (unsigned short *)(login.closetime().c_str());
+//                for(int i=0;i<8;i++)
+//                {
+////                    cout<<"opentime:"<<*a++<<endl;
+////                    cout<<"closetime:"<<*b++<<endl;
+//                    //log.info("opentime:%u",*a++);
+//                    //log.info("closetime:%u",*b++);
+//                }
+//
+////                cout<<"attrib:"<<login.attrib()<<endl;
+////                cout<<"priority:"<<*((unsigned short *)(login.priority().c_str()))<<endl;
+//            }
+//            else if(DCT_REQPASS == uc_type)
+//            {
+//                dctype = "DCT_REQPASS";
+//                reqpass.set_encytype((dc_ency_type)(*((int *)(dctype_instance_addr))));
+//                reqpass.set_key(*((unsigned long long *)(dctype_instance_addr+4)));
+//
+////                cout<<"encytype:"<<reqpass.encytype()<<endl;
+////                cout<<"key:"<<reqpass.key()<<endl;
+////                log.info("encytype:%d",reqpass.encytype());
+//            }
+//            else if(DCT_USERnPASS == uc_type)
+//            {
+//                dctype = "DCT_USERnPASS";
+//                userpass.set_user(dctype_instance_addr,16);
+//                userpass.set_pass(dctype_instance_addr+16,24);
+//
+////                cout<<"user:"<<userpass.user()<<endl;
+////                cout<<"pass:"<<userpass.pass()<<endl;
+////                log.info("user:%s",userpass.user().c_str());
+//            }
+//            else if (DCT_READY == uc_type)
+//            {
+//                dctype = "DCT_READY";
+//                ready.set_instruct(*((dc_ready_dc_instruct *)dctype_instance_addr));
+//                ready.set_errcode(*((dc_ready_dc_error *)(dctype_instance_addr+4)));
+//                ready.set_delayconnecttime(*((unsigned long *)(dctype_instance_addr+8)));
+//                ready.set_staticlabversion((*((unsigned long *)(dctype_instance_addr+12))));
+//                ready.set_compress(*((unsigned int*)(dctype_instance_addr+16)));
+//
+////                ready.set_dataencytype(*((dc_ency_type *)(dctype_instance_addr+20)));
+//                ready.set_datakey(*((unsigned long long *)(dctype_instance_addr+24)));
+//
+////                cout<<"instruct:"<<ready.instruct()<<endl;
+////                cout<<"errcode:"<<ready.errcode()<<endl;
+////                cout<<"delayconnecttime:"<<ready.delayconnecttime()<<endl;
+////                cout<<"staticlabversion:"<<ready.staticlabversion()<<endl;
+////                cout<<"compress:"<<ready.compress()<<endl;
+////                cout<<"dataencytype:"<<*((unsigned int *)(dctype_instance_addr+20))<<endl;
+//////                cout<<"dataencytype:"<<ready.dataencytype()<<endl;
+////                cout<<"datakey:"<<ready.datakey()<<endl;
+//
+//                //log.info("instruct:%d",ready.instruct());
+//            }
+//            else if(DCT_RESEND == uc_type)
+//            {
+//                dctype = "DCT_RESEND";
+//            }
+//            else if(DCT_STKSTATIC == uc_type)
+//            {
+//                dctype = "DCT_STKSTATIC";
+//                stkstatic.set_version(*(unsigned int*)dctype_instance_addr);
+//                stkstatic.set_attrib(dctype_instance_addr+4,2);
+//                stkstatic.set_day(*(unsigned int *)(dctype_instance_addr+6));
+//                stkstatic.set_num(dctype_instance_addr+10,2);
+//                stks = stkstatic.add_data();
+//                stks->set_stkid(dctype_instance_addr+12,2);
+//                stks->set_strlabel(dctype_instance_addr+14,10);
+//                stks->set_strname(dctype_instance_addr+24,32);
+//                stks->set_type(dctype_instance_addr+56,1);
+//                stks->set_pricedigit(dctype_instance_addr+57,1);
+//                stks->set_floatissued(*(unsigned int *)(dctype_instance_addr+58));
+//                stks->set_totalissued(*(unsigned int *)(dctype_instance_addr+62));
+//                stks->set_lastclose(*(unsigned long *)(dctype_instance_addr+66));
+//                stks->set_advstop(*(unsigned long *)(dctype_instance_addr+70));
+//                stks->set_decstop(*(unsigned long *)(dctype_instance_addr+74));
+//
+//                //log.info("static version:%d",stkstatic.version());
+////                cout<<"static version:"<<stkstatic.version()<<endl;
+////                cout<<"static attrib:"<<*((short *)(stkstatic.attrib().c_str()))<<endl;
+////                cout<<"static day:"<<stkstatic.day()<<endl;
+////                cout<<"static num:"<<stkstatic.num()<<endl;
+////                cout<<"static stkid:"<<(*((short *)(stks->stkid().c_str())))<<endl;
+////                cout<<"static strlabel:"<<stks->strlabel().c_str()<<endl;
+////                cout<<"static strname:"<<stks->strname().c_str()<<endl;
+////                cout<<"static type:"<<static_cast<unsigned int>(*(stks->type().c_str()))<<endl;
+////                cout<<"static pricedigit:"<<static_cast<unsigned int>(*(stks->pricedigit().c_str()))<<endl;
+////                cout<<"static floatissued:"<<stks->floatissued()<<endl;
+////                cout<<"static totalissued:"<<stks->totalissued()<<endl;
+////                cout<<"static lastclose:"<<stks->lastclose()<<endl;
+////                cout<<"static advstop:"<<stks->advstop()<<endl;
+////                cout<<"staitc decstop:"<<stks->decstop()<<endl;
+//
+//            }
+//		else if(DCT_STKDYNA == uc_type)
+//            {
+//                dctype = "DCT_STKDYNA";
+//
+//        //test
+//
+//                pthread_params *pp;
+//                int timelive;
+//                pp = static_cast<pthread_params *>(pthread_getspecific(key_cap));
+//                if(pp->countnum == 0)
+//                {
+//                    pp->timebase = time((time_t)NULL);
+//                }
+//                timelive = time((time_t *)NULL);
+//                if(timelive - pp->timebase > 300 && pp->timetag == 0)
+//                {
+//                    pp->timetag = 1;
+//                    cout<<"file:"<<filter<<" !!! 10min data len:"<<pp->countnum<<endl;
+//                }
+//                else
+//                {
+//                    pp->countnum = pp->countnum + ip_data_len;
+//                }
+//
+//
+//                dcstkdyna.set_dynaseq(dctype_instance_addr,2);
+//                //log.info("stkd_seq:%u",*((unsigned short *)(dcstkdyna.dynaseq().c_str())));
+////                cout<<"stkd_seq:"<<dec<<*((unsigned short *)(dcstkdyna.dynaseq().c_str()))<<endl;
+//                dcstkdyna.set_num(dctype_instance_addr+sizeof(short),2);
+////                cout<<"stkd_num:"<<*((unsigned short *)(dcstkdyna.num().c_str()))<<endl;
+//
+//                stkd_addr = dctype_instance_addr+sizeof(short)*2;
+//                stkd.set_stkid(stkd_addr,2);
+////                cout<<"stkdid:"<<*((unsigned short *)stkd.stkid().c_str())<<endl;
+//
+//                stkd.set_time(*((time_t *)(stkd_addr+sizeof(short))));
+//                //log.info("stkd_dealtime:%lld",stkd.time());
+////                cout<<"stkd_dealtime:"<<stkd.time()<<endl;
+////
+////                cout<<"dealtime:"<<ctime(&stkd_dealtime);
+//
+//                stkd.set_open(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t))));
+////                cout<<"stkd_open:"<<stkd.open()<<endl;
+//
+//                stkd.set_high(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long))));
+////                cout<<"stkd_high:"<<stkd.high()<<endl;
+//
+//                stkd.set_low(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*2)));
+////                cout<<"stkd_low:"<<stkd.low()<<endl;
+//
+//                stkd.set_new_(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*3)));
+////                cout<<"stkd_new:"<<stkd.new_()<<endl;
+//
+//                stkd.set_volume(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*4)));
+////                cout<<"stkd_vol:"<<stkd.volume()<<endl;
+////                cout<<"vol_getvalue:"<<Utils::mword_type_val(stkd.volume())<<endl;
+//
+//                stkd.set_amount(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*5)));
+////                cout<<"stkd_amount:"<<stkd.amount()<<endl;
+////                cout<<"amount_getvalue:"<<Utils::mword_type_val(stkd.amount())<<endl;
+//
+//                stkd.set_innervol(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*6)));
+////                cout<<"stkd_innervol:"<<stkd.innervol()<<endl;
+////                cout<<"innervol_getvalue:"<<Utils::mword_type_val(stkd.innervol())<<endl;
+//
+//                stkd.set_tickcount(*((unsigned long*)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*7)));
+////                cout<<"stkd_tickcount:"<<stkd.tickcount()<<endl;
+//
+//                stkd.set_buyprice(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*8,20);
+//                unsigned long *ptr = (unsigned long *)(stkd.buyprice().c_str());
+////                for(int i=0;i<5;i++,ptr++)
+////                {
+////                    cout<<"stkd_buyprice:"<<i<<" "<<*ptr<<endl;
+////                }
+//
+//                stkd.set_buyvol(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*13,20);
+//                ptr = (unsigned long *)(stkd.buyvol().c_str());
+////                for(int i=0;i<5;i++,ptr++)
+////                {
+////                    cout<<"stkd_buyvol:"<<i<<" "<<*ptr<<endl;
+////                }
+//
+//                stkd.set_sellprice(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*18,20);
+//                ptr=(unsigned long*)(stkd.sellprice().c_str());
+////                for(int i=0;i<5;i++,ptr++)
+////                {
+////                    cout<<"stkd_sellprice:"<<i<<" "<<*ptr<<endl;
+////                }
+//
+//                stkd.set_sellvol(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*23,20);
+//                ptr=(unsigned long*)(stkd.sellvol().c_str());
+////                for(int i=0;i<5;i++)
+////                {
+////                    cout<<"stkd_sellvol:"<<i<<" "<<*ptr<<endl;
+////                }
+//
+//                stkd.set_openinterest(*((unsigned long *)stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*28));
+////                cout<<"stkd_openinterest:"<<stkd.openinterest()<<endl;
+//
+//                stkd.set_settleprice(*(unsigned long *)(stkd_addr+sizeof(short)+sizeof(time_t)+sizeof(long)*29));
+////                cout<<"stkd_settleprice:"<<stkd.settleprice()<<endl;
+//            }
+//            else if(DCT_SHL2_MMPEx == uc_type)
+//            {
+//                dctype = "DCT_SHL2_MMPEx";
+//            }
+//            else if(DCT_SHL2_REPORT == uc_type)
+//            {
+//                dctype = "DCT_SHL2_REPORT";
+//            }
+//            else if(DCT_SHL2_BIG_WD == uc_type)
+//            {
+//                dctype = "DCT_SHL2_BIG_WD";
+//            }
+//            else if(DCT_SHL2_ACCU_WD == uc_type)
+//            {
+//                dctype = "DCT_SHL2_ACCU_WD";
+//            }
+//            else if(DCT_HK_STATIC == uc_type)
+//            {
+//                dctype = "DCT_HK_STATIC";
+//            }
+//            else if(DCT_HK_DYNA == uc_type)
+//            {
+//                dctype = "DCT_HK_DYNA";
+//            }
+//            else if(DCT_XML == uc_type)
+//            {
+//                dctype = "DCT_XML";
+//            }
+//            else if(DCT_SHL2_QUEUE == uc_type)
+//            {
+//                dctype = "DCT_SHL2_QUEUE";
+//            }
+//            else if(DCT_GENERAL == uc_type)
+//            {
+//                dctype = "DCT_GENERAL";
+//            }
+//            else if(DCT_USERSTAT == uc_type)
+//            {
+//                dctype = "DCT_USERSTAT";
+//            }
+//            else if(DCT_RAWDATA == uc_type)
+//            {
+//                dctype = "DCT_RAWDATA";
+//                rawdata.set_marketid(dctype_instance_addr,2);
+//                rawdata.set_filename(dctype_instance_addr+2,14);
+//                rawdata.set_attrib(*((unsigned long *)(dctype_instance_addr+16)));
+//                rawdata.set_version(*((unsigned long *)(dctype_instance_addr+20)));
+//                rawdata.set_rawdatalen(*((unsigned long *)(dctype_instance_addr+24)));
+//                rawdata.set_datalen(*((unsigned long *)(dctype_instance_addr+28)));
+//                rawdata.set_data(dctype_instance_addr+32,1);
+//
+//                //log.info("raw marketid:%u",(unsigned short)(*(rawdata.marketid().c_str())));
+//                //log.info("raw filename:%s",rawdata.filename().c_str());
+//
+////                cout<<"raw marketid:"<<(unsigned short)(*(rawdata.marketid().c_str()))<<endl;
+////                cout<<"raw filename:"<<rawdata.filename()<<endl;
+////                cout<<"raw attrib:"<<rawdata.attrib()<<endl;
+////                cout<<"raw version:"<<rawdata.version()<<endl;
+////                cout<<"raw rawlen:"<<rawdata.rawdatalen()<<endl;
+////                cout<<"raw datalen:"<<rawdata.datalen()<<endl;
+////                cout<<"raw data:"<<(unsigned int)(*(rawdata.data().c_str()))<<endl;
+//            }
+//            else if(DCT_NEWS == uc_type)
+//            {
+//                dctype = "DCT_NEWS";
+//            }
+//            else if(DCT_SZL2_ORDER_QUEUE == uc_type)
+//            {
+//                dctype = "DCT_SZL2_ORDER_QUEUE";
+//            }
+//            else if(DCT_SZL2_ORDER_STAT == uc_type)
+//            {
+//                dctype = "DCT_SZL2_ORDER_STAT";
+//            }
+//            else if(DCT_SZL2_FULL_ORDER == uc_type)
+//            {
+//                dctype = "DCT_SZL2_FULL_ORDER";
+//            }
+//            else if(DCT_SZL2_FULL_TRADE == uc_type)
+//            {
+//                dctype = "DCT_SZL2_FULL_TRADE";
+//            }
+//            else
+//                dctype = "UNKNOW";
+//
+//            /* convert the timestamp to readable format */
+//            local_tv_sec = header->ts.tv_sec;
+//            ltime=localtime(&local_tv_sec);
+//
+////            infotos(ltime,iproto,ih,sport,dport,ip_data_len,netflags,dctype);
+//
+//            if (iproto != "")
+//            {
+//                char timestr[16];
+//                strftime(timestr, sizeof timestr, "%H:%M:%S", ltime);
+//                info.filter = filter;
+//                info.timestamp = timestr;
+//                info.len = ip_data_len;
+//				info.iproto = iproto;
+//                info.saddrbyte1 = ih->saddr.byte1;
+//                info.saddrbyte2 = ih->saddr.byte2;
+//                info.saddrbyte3 = ih->saddr.byte3;
+//                info.saddrbyte4 = ih->saddr.byte4;
+//                info.sport = sport;
+//                info.daddrbyte1 = ih->daddr.byte1;
+//                info.daddrbyte2 = ih->daddr.byte2;
+//                info.daddrbyte3 = ih->daddr.byte3;
+//                info.daddrbyte4 = ih->daddr.byte4;
+//                info.dport = dport;
+//                info.flags = netflags;
+//                info.dctype = dctype;
+//
+//                pthread_mutex_lock(&mutex);
+//                dbuf.push_back(info);
+//                pthread_mutex_unlock(&mutex);
+//
+////                log.info("%s len:%d %s %d.%d.%d.%d:%d -> %d.%d.%d.%d:%d flags:%s dc_type:%s",
+////                        timestr,
+////                        ip_data_len,
+////                        iproto,
+////                        ih->saddr.byte1,
+////                        ih->saddr.byte2,
+////                        ih->saddr.byte3,
+////                        ih->saddr.byte4,
+////                        sport,
+////                        ih->daddr.byte1,
+////                        ih->daddr.byte2,
+////                        ih->daddr.byte3,
+////                        ih->daddr.byte4,
+////                        dport,
+////                        netflags,
+////                        dctype);
+//            }
+//        }
+//		break;
+//	case UDP:
+//		udph = (udp_head *) ((unsigned char*)ih + ip_len);
+//		iproto = "UDP";
+//		/* convert from network byte order to host byte order */
+//		sport = ntohs( udph->sport );
+//		dport = ntohs( udph->dport );
+//		break;
+//	default:
+//		iproto = "";
+//		break;
+//	}
+//
+//}
+//

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listening>
+    <pcap>
+        <filter filterdata="src port 9967"></filter>
+    </pcap>
+
+</listening>
