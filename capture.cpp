@@ -161,6 +161,7 @@ void * Capture::RunThreadFunc()
 	delete [] errbuf;
 	pcap_freealldevs(alldevs);
 
+
 	if(pcap_loop(adhandle,0,PacketHandler,(unsigned char *)this) < 0)
 	{
 		cout<<"pcap_loop:"<<pcap_geterr(adhandle)<<endl;
@@ -170,6 +171,12 @@ void * Capture::RunThreadFunc()
 	//pcap_dump_close(dumper);
 	return ((void *)0);
 }
+//
+//void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *header, const unsigned char *pkt_data)
+//{
+//	pcap_dump(param,header,pkt_data);
+//}
+
 
 void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *header, const unsigned char *pkt_data)
 {
@@ -189,6 +196,8 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
 	static int tcpdisconnstatus = 0;
 	static int fintag = 0;
 	static int acktag = 0;
+
+
 
 	Capture *cap = (Capture *)param;
 	sock_deque = &(cap->sock_deque_);
@@ -309,25 +318,35 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
 			tcpdisconntag = 0;
 			tcpdisconnstatus = 0;
 		}
-		map<std::string,zmq::socket_t*>::iterator iter;
-		if((iter=sock_map->find(key_ip_dst)) != sock_map->end())
-		{
-			zmq::socket_t * sock = iter->second;
-			pcap_work_item item;
-			item.port_tag = port;
-			item.header = *header;
-			memcpy(item.data,pkt_data,header->caplen);
-			try
-			{
-				zmq::message_t msg (sizeof(item));
-				memcpy((void*)(msg.data()),&item,sizeof(item));
-				sock->send(msg,ZMQ_NOBLOCK);
-			}
-			catch(zmq::error_t error)
-			{
-				cout<<"cap: zmq send error!"<<error.what()<<endl;
-			}
 
-		}
+		//cout<<"key_ip_dst:"<<key_ip_dst<<endl;
+		//if(header->caplen > 60)//filter >60bytes packet
+		//{
+			//cout<<"header caplen:"<<header->caplen<<endl;
+			//cout<<"key_ip_dst:"<<key_ip_dst<<endl;
+			map<std::string,zmq::socket_t*>::iterator iter;
+			if((iter=sock_map->find(key_ip_dst)) != sock_map->end())
+			{
+				/*cout<<"key_ip_dst:"<<key_ip_dst<<endl;*/
+				zmq::socket_t * sock = iter->second;
+				pcap_work_item item;
+				item.port_tag = port;
+				item.header = *header;
+				memcpy(item.data,pkt_data,header->caplen);
+				try
+				{
+					zmq::message_t msg (sizeof(pcap_work_item));
+					memcpy((void*)(msg.data()),&item,sizeof(item));
+					sock->send(msg,ZMQ_NOBLOCK);
+					
+					//sock->send(msg);
+					//Sleep(50);
+				}
+				catch(zmq::error_t error)
+				{
+					cout<<"cap: zmq send error!"<<error.what()<<endl;
+				}
+			}
+	//	}
 	}
 }

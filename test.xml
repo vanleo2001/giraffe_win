@@ -2,12 +2,12 @@
 <listening>
     <did_config configpath="D:\Projects\vs2010\Monitor_Win\Monitor_Win\config.xml" ></did_config>
     <did_templates>
-      <did_template id ="1" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100000.xml"></did_template>
-      <did_template id ="2" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100001.xml"></did_template>
-      <did_template id ="3" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100002.xml"></did_template>
-      <did_template id ="4" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100012.xml"></did_template>
-      <did_template id ="5" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100030.xml"></did_template>
-      <did_template id ="6" did_template_path="C:\Users\Yison\Desktop\wdc-new\did\asclient\100032.xml"></did_template>
+      <did_template id ="1" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100000.xml"></did_template>
+      <did_template id ="2" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100001.xml"></did_template>
+      <did_template id ="3" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100002.xml"></did_template>
+      <did_template id ="4" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100012.xml"></did_template>
+      <did_template id ="5" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100030.xml"></did_template>
+      <did_template id ="6" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100032.xml"></did_template>
     </did_templates>
   
   <log>
@@ -30,7 +30,7 @@
       </thread>
     </listeningitem>-->
   
-  <listeningitem port="9268" filter="port 9268">
+  <listeningitem port="9268" filter="tcp and port 9268">
     <thread threadclass="Capture">
       <zmqs>
         <zmq zmqpattern="PUB" zmqsocketaction="bind" zmqsocketaddr="inproc://9268cap_to_parse" ></zmq>

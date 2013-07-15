@@ -117,6 +117,8 @@ char * Utils::DCTypeToString(int dc_type)
 		return "DCT_DSCRC";
 	case DCT_DSDID:
 		return "DCT_DSDID";
+	case DCT_DSDATA:
+		return "DCT_DSDATA";
 	case DCT_DID:
 		return "DCT_DID";
 	case DCT_DIDSTATIC:
@@ -130,6 +132,14 @@ char * Utils::DCTypeToString(int dc_type)
 	default:
 		return "UNKNOW DC_TYPE";
 	}
+}
+
+void Utils::Print_Thread_ID(pthread_t tid)
+{
+	size_t i;
+	for(i=sizeof(i);i;--i)
+		printf("%02x",*(((unsigned char *)&tid)+i-1));
+	printf("\n");
 }
 
 

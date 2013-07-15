@@ -44,6 +44,13 @@ public:
         pStkDyna = NULL;
         pStkMMPEx = NULL;
 		file_ = new MonitorFileMap("FX_191111.dat",MonitorFileMap::BUILD);
+		count_rc_ = 0;
+		last_pack_len_ = 0;
+		last_temp_len_ = 0;
+		long_pack_tag_ = 0;
+		case2_tag_  = false;
+		dc_header_last_inner_len_ = 0;
+		last_tcp_seq_ = 0;
     };
     virtual ~Parse()
     {
@@ -77,8 +84,9 @@ public:
     BOOL DecryptDataPack(DC_HEAD * pData);
     BOOL ExtractDataPack(const DC_HEAD* pOrgHead,DC_HEAD* pHeadBuf,int nBufSize,WORD* pwMarketBuf=NULL);
 	bool IsDCType(int dc_type);
+	bool IsDCHeader(unsigned char * dc_header);
 	void CombinePacket(unsigned char * pdch, int dc_len);
-	void ExtractPacket(lua_State *L);
+	void ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned char *pkt_data,zmq::socket_t * sock, int port_tag);
 	void DispatchToLua(lua_State *L, unsigned char * pdcdata, int dc_type, int stk_num, int stuct_size, int did_template_id=0);
 	void DispatchToLog(zmq::socket_t *sock, bufelement &info);
 	void DispatchToMonitor(int stk_id, std::string &value);
@@ -92,8 +100,16 @@ private:
     zmq::context_t *context_;
 	ExtractDC extractDC_;
 	MonitorFileMap * file_;
-	deque<combined_packet_item> combined_packet_deque_;
-	
+	deque<CombinedPacketItem> combined_packet_deque_;
+	int count_rc_;
+	int long_pack_tag_;
+	int last_pack_len_;
+	int last_temp_len_;
+	bool case2_tag_;
+	CombinedPacketItem combined_packet_item_;
+	unsigned char dc_header_[10];//10 is the length of dc_header
+	int dc_header_last_inner_len_;
+	unsigned long last_tcp_seq_;
 };
 
 

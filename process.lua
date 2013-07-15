@@ -161,8 +161,8 @@ function process(dctype,pdcdata)
     if dctype == C.DCT_STKSTATIC then
         --print ("lua:static")
         pdata = ffi.cast("STK_STATIC *",pdcdata)
-        print(ffi.string(pdata.m_strLabel))
-        print(ffi.string(pdata.m_strName))
+        --print(ffi.string(pdata.m_strLabel))
+        --print(ffi.string(pdata.m_strName))
 		outstr = string.format("stk_static: stk_label = %s, last = %d",ffi.string(pdata.m_strLabel),pdata.m_dwLastClose)
     elseif dctype == C.DCT_STKDYNA then
         --print ("lua:dyna")
@@ -180,35 +180,35 @@ function process_did(template_id,data)
 	if template_id == 100000 then
 		template = require("100000")
 		pdata = ffi.cast("T_BUY_SELL_INFO *",data)
-		print(pdata.STKID)
-		print(pdata.BuyCount[0])
-		print(pdata.SellCount[0])
+		--print(pdata.STKID)
+		--print(pdata.BuyCount[0])
+		--print(pdata.SellCount[0])
 		outstr = "100000"
 	elseif template_id == 100001 then
 		template = require("100001")
 		pdata = ffi.cast("T_BUY_SELL_TICK_INFO *",data)
-		print(pdata.STKID)
-		print(pdata.BuyOrderId)
+		--print(pdata.STKID)
+		--print(pdata.BuyOrderId)
 		outstr = "100001"
 	elseif template_id == 100002 then
 		template = require("100002")
 		pdata = ffi.cast("T_IOPV_INFO *",data)
-		print(pdata.STKID)
+		--print(pdata.STKID)
 		outstr = "100002"
 	elseif template_id == 100012 then
 		template = require("100012")
 		pdata = ffi.cast("T_CBT_MARKET *",data)
-		print(pdata.STKID)
+		--print(pdata.STKID)
 		outstr = "100012"
 	elseif tempalte_id == 100030 then
 		template = require("100030")
 		pdata = ffi.cast("T_ETF_INFO *",data)
-		print(pdata.STKID)
+		--print(pdata.STKID)
 		outstr = "100030"
 	elseif template_id == 100032 then
 		template = require("100032")
 		pdata = ffi.cast("T_MMP_INFO *",data)
-		print(pdata.STKID)
+		--print(pdata.STKID)
 		outstr = "100032"
 	end
 	return outstr

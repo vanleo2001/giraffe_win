@@ -51,7 +51,7 @@ void * Log::RunThreadFunc()
     }
     zmq::pollitem_t items[] = {socket_log, 0, ZMQ_POLLIN, 0};
 
-    zmq::message_t msg_rcv(sizeof(bufelement)+1);
+    //zmq::message_t msg_rcv(sizeof(bufelement)+1);
     while(true)
     {
         //wait for recv
@@ -62,9 +62,10 @@ void * Log::RunThreadFunc()
             {
                 if(items[0].revents & ZMQ_POLLIN)
                 {
-                    msg_rcv.rebuild();
+                    zmq::message_t msg_rcv(sizeof(bufelement));
                     socket_log.recv(&msg_rcv,ZMQ_NOBLOCK);
-                    info = *(static_cast<bufelement *>(msg_rcv.data()));
+                   /* socket_log.recv(&msg_rcv);*/
+					info = *(static_cast<bufelement *>(msg_rcv.data()));
                     it = logmapping.find(info.port_tag);
                     if(it != logmapping.end())
                     {

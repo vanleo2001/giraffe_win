@@ -12,15 +12,15 @@
 
 using namespace std;
 
-const int PCAPTOPARSE_BUF_SIZE = 1024*100;
-const int COMBINED_PACKET_ITEM_SIZE = 1024*100;
+const int PCAPTOPARSE_BUF_SIZE = 2048;
+const int COMBINED_PACKET_ITEM_SIZE = 409600;
 
 #pragma pack(push,1)
 
-typedef struct combined_packet_item
+typedef struct CombinedPacketItem
 {
 	char data[COMBINED_PACKET_ITEM_SIZE];
-}combined_packet_item;
+}CombinedPacketItem;
 
 /* 4 bytes IP address */
 typedef struct ip_address
@@ -109,7 +109,7 @@ struct CPS_DYNA_HEAD
 typedef struct bufelement
 {
     int port_tag;
-    char *timestamp;
+    char timestamp[16];
     int len;
     char * iproto;
     int saddrbyte1;
