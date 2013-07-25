@@ -1,6 +1,4 @@
 #include "parse.h"
-//#include "decrypt_aes.h"
-//#include "decrypt_simple.h"
 #include "extract_dc.h"
 #include "MonitorFileMap.h"
 #include "DidUncompress.h"
@@ -13,32 +11,11 @@
     #include <lua.hpp>
 #endif
 #include <sys/types.h>
+#include <assert.h>
+#include <zlib.h>
 
 
 const int MAX_PACKET_LEN = 409600;
-//BOOL Parse::DecryptDataPack(DC_HEAD *pData)
-//{
-//	BOOL bRet = FALSE;
-//	DC_ENCY_TYPE type = (DC_ENCY_TYPE)(pData->m_wAttrib&DC_ENCY_MASK);
-//	int len;
-//	if(type==DC_ENCY_SIMPLE)
-//	{
-//	    len = Utils::UINT24to32(pData->m_nLen.m_wLow, pData->m_nLen.m_cHigh);
-//	    DecryptSimple decryptsimple;
-//		decryptsimple.DecryptData((BYTE*)(pData+1),len);
-//		pData->m_wAttrib &= ~DC_ENCY_SIMPLE;
-//		bRet = TRUE;
-//	}
-//	//else if(type==DC_ENCY_AES)
-//	//{
-// //       len = Utils::UINT24to32(pData->m_nLen.m_wLow, pData->m_nLen.m_cHigh);
-// //       DecryptAES decryptaes;
-//	//	decryptaes.DecryptData((BYTE*)(pData+1),len);
-//	//	pData->m_wAttrib &= ~DC_ENCY_AES;
-//	//	bRet = TRUE;
-//	//}
-//	return bRet;
-//}
 
 bool Parse::IsDCHeader(unsigned char * dc_header)
 {
@@ -51,6 +28,7 @@ bool Parse::IsDCHeader(unsigned char * dc_header)
 
 BOOL Parse::ExtractDataPack(const DC_HEAD* pOrgHead,DC_HEAD* pHeadBuf,int nBufSize,WORD* pwMarketBuf)
 {
+	assert(NULL != pOrgHead && NULL != pHeadBuf);
     const BYTE *pOrgData = (BYTE *)(pOrgHead + 1);
     BYTE *pDataBuf = (BYTE *)(pHeadBuf + 1);
  	int nRet = 0;
@@ -70,6 +48,33 @@ BOOL Parse::ExtractDataPack(const DC_HEAD* pOrgHead,DC_HEAD* pHeadBuf,int nBufSi
 			pHeadBuf->m_nLen = nRet;
 			nRet += sizeof(DC_HEAD);
 		}
+	}
+	else if (DC_TAG == pOrgHead->m_cTag && DC_ZLIB_CPS == (pOrgHead->m_wAttrib & DC_CPS_MASK))
+	{
+		char * extract_buf = (char*)pHeadBuf;
+		ZLIB_HEAD *zlib_head = (ZLIB_HEAD*)(pOrgHead + 1);
+		int dst_len = nBufSize;
+		int zlib_len = zlib_head->m_dwSourceLen + sizeof(DC_HEAD);
+		if(zlib_len > nBufSize)
+		{
+			if(NULL != extract_buf)
+			{
+				delete [] extract_buf;
+				extract_buf = NULL;
+			}
+			extract_buf = new char[zlib_len];
+			pHeadBuf = (DC_HEAD*)extract_buf;
+			dst_len = zlib_len; 
+		}
+		memcpy(extract_buf,pOrgHead,sizeof(DC_HEAD));
+		dst_len -= sizeof(DC_HEAD);
+		char *zlib_data = (char*)(zlib_head + 1);
+		uncompress((Bytef*)(extract_buf+sizeof(DC_HEAD)),(uLongf*)&dst_len,(Bytef*)zlib_data,pOrgHead->m_nLen.Get()-sizeof(ZLIB_HEAD));
+		if(dst_len != zlib_head->m_dwSourceLen)
+		{
+			nRet = -1;
+		}
+		nRet = pHeadBuf->m_nLen.Get() + sizeof(DC_HEAD);
 	}
 	return nRet;
 }
@@ -93,7 +98,7 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 	//int first_imcomplete_len = 0;
 	//int last_imcomplete_len = 0;
 	int packet_len = 0;
-
+	int recombined_header_bufsize = 0;
 	while(temp_len > 0)
 	{
 		//combine dc_header and judge whether the combined dc_header is the real dc_header
@@ -102,11 +107,27 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 			memcpy(dc_header_ + dc_header_last_inner_len_ , temp_pdch, sizeof(DC_HEAD)-dc_header_last_inner_len_);
 			if(IsDCHeader(dc_header_))
 			{
-				memset(combined_packet_item_.data, 0, sizeof(combined_packet_item_.data));
-				memcpy(combined_packet_item_.data,dc_header_,dc_header_last_inner_len_);
-				last_temp_len_ = dc_header_last_inner_len_;
-				DC_HEAD * p_dc_head = (DC_HEAD *)dc_header_;
-				last_pack_len_ = sizeof(DC_HEAD) + p_dc_head->m_nLen.Get() - dc_header_last_inner_len_;
+				//memset(combined_packet_item_.data, 0, sizeof(combined_packet_item_.data));
+				//memcpy(combined_packet_item_.data,dc_header_,dc_header_last_inner_len_);
+				//last_temp_len_ = dc_header_last_inner_len_;
+				//DC_HEAD * p_dc_head = (DC_HEAD *)dc_header_;
+				//last_pack_len_ = sizeof(DC_HEAD) + p_dc_head->m_nLen.Get() - dc_header_last_inner_len_;
+				recombined_header_bufsize = sizeof(recombined_header_buf_);
+				if(temp_len < recombined_header_bufsize)
+				{
+					memset(recombined_header_buf_ , 0 , recombined_header_bufsize);
+					memcpy(recombined_header_buf_, dc_header_,dc_header_last_inner_len_);
+					memcpy(recombined_header_buf_+dc_header_last_inner_len_, temp_pdch, temp_len);
+					temp_pdch = recombined_header_buf_;
+					temp_dch_item = (DC_HEAD *) temp_pdch;
+					temp_len += dc_header_last_inner_len_;
+					dc_header_last_inner_len_= 0;
+				}
+				else
+				{
+					cout<<"caplen is larger than recombined header buffer size"<<endl;
+					return ;
+				}
 			}
 			else
 			{
@@ -137,11 +158,6 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 			{
 				packet_len = 0;
 			}
-		}
-		else if(last_pack_len_ != 0 && dc_header_last_inner_len_ != 0)
-		{
-			packet_len = last_pack_len_;
-			dc_header_last_inner_len_ = 0;
 		}
 		else
 			packet_len = 0;
@@ -313,7 +329,7 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
 		CombinedPacketItem &packet_item = combined_packet_deque_.front();
 		DC_HEAD * pdch = (DC_HEAD *)packet_item.data;
 		cout<<"dctype:"<<(int)(pdch->m_cType)<<endl;
-		if(DC_STD_CPS == (pdch->m_wAttrib & DC_CPS_MASK))
+		if( DC_STD_CPS == (pdch->m_wAttrib & DC_CPS_MASK) || DC_ZLIB_CPS == (pdch->m_wAttrib &DC_CPS_MASK))
 		{
 			if(NULL == extractbuf)
 			{
@@ -331,6 +347,7 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
 			else
 			{
 				cout<<"extract error! error num is :"<<extract_ret<<endl;
+				combined_packet_deque_.pop_front();
 				return ;
 			}
 		}
@@ -339,12 +356,6 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
         {
 			//initial the did related files
 			extractDC_.set_static_before_dyna_tag(true);	
-			if(1 == did_sync_module_tag)
-			{
-				DIDTemplateToLuaStruct did_to_lua;
-				did_to_lua.Transform();
-				did_sync_module_tag = 0;
-			}
             DC_STKSTATIC_MY* p = (DC_STKSTATIC_MY*)(pdch+1);
 			stknum = p->m_nNum;
 			struct_size = sizeof(STK_STATIC);
@@ -410,11 +421,34 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
         }
 		else if(DCT_DSDATA == pdch->m_cType)
 		{
-			did_sync_module_tag = 1;
+			//write template files
+			//DC_DSDATA * dsdata = (DC_DSDATA *)(pdch+1);
+			//int data_len = pdch->m_nLen.Get() + sizeof(DC_DSLEN) - sizeof(DC_DSDATA) - dsdata->m_dwDidNum*sizeof(DC_DSLEN);
+			//if(dsdata->m_dwDidNum > 0)
+			//{
+			//	DC_DSLEN *ds_len = dsdata->mDsLen;
+			//	char *did_template_data = (char *)ds_len +dsdata->m_dwDidNum * sizeof(DC_DSLEN);
+			//	for(int i=0;i<dsdata->m_dwDidNum;i++)//write template files
+			//	{
+			//		char file_name[64] = {0};
+			//		sprintf(file_name ,"%lu.xml",ds_len->m_dwDid);
+
+			//		//wirte to file
+			//		FILE * fp = fopen(file_name, "wb");
+			//		assert(NULL != fp);
+			//		fwrite(did_template_data,ds_len->m_dwLen,1,fp);
+			//		fclose(fp);
+			//		fp = NULL;
+
+			//		data_len -= ds_len->m_dwLen;
+			//		did_template_data += ds_len->m_dwLen;
+			//		ds_len++;
+			//	}
+			//}
 		}
 		else if(DCT_DID == pdch->m_cType)
 		{
-			string did_config_file = XML_DID::get_did_config_path();
+			string did_config_file = listening_item_.get_did_config_path();
 			DidUncompress diducp(did_config_file);
 			diducp.ReadConfig();
 			diducp.Initialize();
@@ -460,7 +494,7 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
 		strftime(info.timestamp, sizeof(info.timestamp), "%H:%M:%S", ltime);
 
 		info.port_tag = port_tag;
-		info.len = ih->tlen - iph_len - tcph_len;
+		info.len = ntohs(ih->tlen) - iph_len - tcph_len;
 		info.iproto = iproto;
 		info.saddrbyte1 = ih->saddr.byte1;
 		info.saddrbyte2 = ih->saddr.byte2;
@@ -475,7 +509,7 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
 		info.flags = netflags;
                            
 		info.dctype = Utils::DCTypeToString(pdch->m_cType);
-		//info.seqtag = seqtag;
+		info.seqtag = pdch->m_nSeq.Get();
 		DispatchToLog(sock, info);
                             
 		combined_packet_deque_.pop_front();
@@ -519,9 +553,10 @@ void Parse::DispatchToLua(lua_State * L, unsigned char * pdcdata, int dc_type, i
 		{
 			//cout<<i<<endl;
 			lua_getglobal(L,"process_did");
+			lua_pushinteger(L,listening_item_.get_port());
 			lua_pushinteger(L, did_template_id);
 			lua_pushlightuserdata(L,pdcdata+i*struct_size);
-			if(lua_pcall(L,2,1,0) != 0)
+			if(lua_pcall(L,3,1,0) != 0)
 			{
 				cout<<lua_tostring(L,-1)<<endl;
 				lua_pop(L,-1);
@@ -529,7 +564,7 @@ void Parse::DispatchToLua(lua_State * L, unsigned char * pdcdata, int dc_type, i
 			}
 			else
 			{
-		/*		cout<<lua_tostring(L,-1)<<endl;*/
+			//	cout<<"did:"<<lua_tostring(L,-1)<<endl;
 				lua_pop(L,-1);
 			}
 		}
@@ -556,8 +591,7 @@ void Parse::DispatchToLua(lua_State * L, unsigned char * pdcdata, int dc_type, i
 			{
 				string lua_ret = lua_tostring(L,-1);
 				int stkid = lua_tonumber(L, -2);
-				//cout<<"lua stkid:"<<stkid<<endl;
-				//cout<<"lua_ret:"<<lua_ret<<endl;
+				//cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
 				DispatchToMonitor(stkid, lua_ret);
 				lua_pop(L,-1);
 			}
@@ -585,8 +619,8 @@ void Parse::DispatchToLog(zmq::socket_t *sock, bufelement &info)
     {
         zmq::message_t msg_send(sizeof(info));
         memcpy((void *)msg_send.data(),(char *)&info,sizeof(info));
-        sock->send(msg_send,ZMQ_NOBLOCK);
-		/*sock->send(msg_send);*/
+        //sock->send(msg_send,ZMQ_NOBLOCK);
+		sock->send(msg_send);
     }
     catch(zmq::error_t error)
     {
@@ -629,7 +663,7 @@ void *Parse::RunThreadFunc()
     //    socket_workinglua_send.connect(this->zmqitems_[2].zmqsocketaddr.c_str());
     //}
 
-    zmq::pollitem_t items[] = {socket_parse_rcv, 0, ZMQ_POLLIN, 0};
+    //zmq::pollitem_t items[] = {socket_parse_rcv, 0, ZMQ_POLLIN, 0};
  
     pcap_work_item *pw_item_ptr;
 	int port_tag;
@@ -640,9 +674,6 @@ void *Parse::RunThreadFunc()
     long int timebase = 0;
     int timetag = 0;
 	DC_HEAD *pdch;
-    //static int tcpconntag = 0;
-    //static int tagscount = 0;
-
 	
     unsigned int countnum_parse = 0;
     long int timebase_parse = 0;
@@ -661,29 +692,18 @@ void *Parse::RunThreadFunc()
 	lua_State* L = luaL_newstate();
 	luaL_openlibs(L);
 	luaL_dofile(L, "process.lua");
-
 	
-	//pthread_t tid;
-	//tid =pthread_self();
-	//Utils::Print_Thread_ID(tid);
     while(true)
     {
-        int rc = zmq_poll(items, 1, 10000);//timeout = 1s
-
-        //int rc = zmq::poll(items, 1, -1);//block
-		if(rc > 0)
-		{
-            if(items[0].revents & ZMQ_POLLIN)
-            {
-				//pthread_t tid;
-				//tid =pthread_self();
-				//Utils::Print_Thread_ID(tid);
-              
-				//if(count_rc_ == 1)
-				/*cout<<"count:"<<count_rc_++<<endl;*/
+  //      int rc = zmq_poll(items, 1, 1000);//timeout = 1s
+		//if(rc > 0)
+		//{
+            //if(items[0].revents & ZMQ_POLLIN)
+            //{
 				memset((void*)(msg_rcv.data()),0,sizeof(pcap_work_item));
-                socket_parse_rcv.recv(&msg_rcv,ZMQ_NOBLOCK);
-				//socket_parse_rcv.recv(&msg_rcv);
+                //socket_parse_rcv.recv(&msg_rcv,ZMQ_NOBLOCK);
+				bool ret = socket_parse_rcv.recv(&msg_rcv);
+				assert(true == ret);
                 pw_item_ptr = static_cast<pcap_work_item*>(msg_rcv.data());
 
 				port_tag = pw_item_ptr->port_tag;
@@ -701,14 +721,12 @@ void *Parse::RunThreadFunc()
 				case TCP:
 					pdch = (DC_HEAD*)((u_char*)pkt_data +14 + head_len);//54= 14+20+20 ethernet head:14bytes, ip head:20bytes, tcp head:20bytes
 					dc_len = ntohs(ih->tlen) - head_len;
-					//cout<<"dc_len:"<<dc_len<<"  tcp seq(net char seq):"<<tcph->seq<<endl<<flush;
 
 					if(dc_len > 0)
 					{
-						if(last_tcp_seq_ != tcph->seq)
+						if(last_tcp_seq_ != tcph->seq)//filter the same tcp seq
 						{
-							//cout<<"dc_len:"<<dc_len<<"  tcp seq(net char seq):"<<ntohl(tcph->seq)<<endl<<flush;
-							cout<<"dc_len"<<dc_len<<endl<<flush;
+							cout<<"dc_len:"<<dc_len<<endl<<flush;
 							last_tcp_seq_ = tcph->seq;
 							CombinePacket((unsigned char *)pdch,dc_len);
 							ExtractPacket(L, header,pkt_data,&socket_parse_send,port_tag);
@@ -720,25 +738,17 @@ void *Parse::RunThreadFunc()
 				default:
 					break;
 				}
-			}
-        }
-        else if (rc ==0 )//timeout
-        {
-            continue;
-        }
-        else
-        {
-            cout<<"zmq poll fail"<<endl;
-			throw zmq_errno();
-		}
+			//}
+  //      }
+  //      else if (rc ==0 )//timeout
+  //      {
+  //          continue;
+  //      }
+  //      else
+  //      {
+  //          cout<<"zmq poll fail"<<endl;
+		//	throw zmq_errno();
+		//}
     }
 }
 
-
-		//}
-  //      catch(zmq::error_t error)
-  //      {
-  //          cout<<"zmq recv error:"<<error.what()<<endl;
-		//	pw_item_ptr = NULL;
-  //          continue;
-  //      }

@@ -27,15 +27,16 @@
 #include "extract_dc.h"
 #include "dzh_time_t.h"
 #include "MonitorFileMap.h"
-
+#include "xml_class_set.h"
 using namespace std;
 
 #define EXTRACT_BUF (2*1024*2014)
+#define DID_TEMPLATE_BUF (2*1024*1024)
 
 class Parse:public BaseThread
 {
 public:
-    Parse(zmq::context_t * context)
+    Parse(zmq::context_t * context, XML_ListeningItem &listening_item):listening_item_(listening_item)
     {
         context_ = context;
         nHqTotal = 0;
@@ -110,6 +111,8 @@ private:
 	unsigned char dc_header_[10];//10 is the length of dc_header
 	int dc_header_last_inner_len_;
 	unsigned long last_tcp_seq_;
+	unsigned char recombined_header_buf_[PCAPTOPARSE_BUF_SIZE];
+	XML_ListeningItem listening_item_;
 };
 
 

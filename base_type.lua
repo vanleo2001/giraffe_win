@@ -13,5 +13,5 @@ typedef uint64 dtime;
 typedef int64 pfloat;
 typedef int64 vfloat;
 
-#pragma unpack()
+#pragma pack()
 ]]

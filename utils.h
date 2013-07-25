@@ -12,6 +12,10 @@ public:
     static int64 ToMword(unsigned long x);
     static unsigned int UINT24to32(unsigned short low,unsigned char high);
 	static char * DCTypeToString(int dc_type);
+	
+	//pthread_t tid;
+	//tid =pthread_self();
+	//Utils::Print_Thread_ID(tid);
 	static void Print_Thread_ID(pthread_t tid);
 };
 

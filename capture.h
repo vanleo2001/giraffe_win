@@ -13,7 +13,7 @@ const int kPoolSize = 8;
 class Capture:public BaseThread
 {
 public:
-	Capture(zmq::context_t *context,XML_ListeningItem &listening_item):context_(context),listening_item_(listening_item),curent_pool_size_(0)
+	Capture(int adapter_id,zmq::context_t *context,XML_ListeningItem &listening_item):adapter_id_(adapter_id),context_(context),listening_item_(listening_item),curent_pool_size_(0)
 	{
 	}
 	virtual ~Capture()
@@ -45,6 +45,7 @@ public:
 	void *RunThreadFunc();
 private:
 	pcap_t *adhandle;
+	int adapter_id_;
 	zmq::context_t *context_;
 	XML_ListeningItem listening_item_;
 	deque<Parse *> parse_deque_;

@@ -49,28 +49,27 @@ void * Log::RunThreadFunc()
     {
         socket_log.connect(this->zmqitems_[0].zmqsocketaddr.c_str());
     }
-    zmq::pollitem_t items[] = {socket_log, 0, ZMQ_POLLIN, 0};
+    //zmq::pollitem_t items[] = {socket_log, 0, ZMQ_POLLIN, 0};
 
-    //zmq::message_t msg_rcv(sizeof(bufelement)+1);
     while(true)
     {
         //wait for recv
         try
         {
-            int rc = zmq::poll(items, 1, 1000);//timeout = 1s
-            if(rc > 0)
-            {
-                if(items[0].revents & ZMQ_POLLIN)
-                {
+            //int rc = zmq::poll(items, 1, 1000);//timeout = 1s
+            //if(rc > 0)
+            //{
+            //    if(items[0].revents & ZMQ_POLLIN)
+            //    {
                     zmq::message_t msg_rcv(sizeof(bufelement));
-                    socket_log.recv(&msg_rcv,ZMQ_NOBLOCK);
-                   /* socket_log.recv(&msg_rcv);*/
+                    //socket_log.recv(&msg_rcv,ZMQ_NOBLOCK);
+                    socket_log.recv(&msg_rcv);
 					info = *(static_cast<bufelement *>(msg_rcv.data()));
                     it = logmapping.find(info.port_tag);
                     if(it != logmapping.end())
                     {
                         log = it->second;
-                        log->info("%s len:%d %s %d.%d.%d.%d:%d -> %d.%d.%d.%d:%d flags:%s dc_type:%s",
+                        log->info("%s len:%d %s %d.%d.%d.%d:%d -> %d.%d.%d.%d:%d flags:%s dc_type:%s seq:%lu",
                                 info.timestamp,
                                 info.len,
                                 info.iproto,
@@ -85,28 +84,28 @@ void * Log::RunThreadFunc()
                                 info.daddrbyte4,
                                 info.dport,
                                 info.flags,
-                                info.dctype);
+                                info.dctype,
+								info.seqtag);
                     }
                     else
                     {
                         cout<<"can't find mapping!"<<endl;
                     }
 
-                }
-            }
-            else if (rc ==0 )//timeout
-            {
-                continue;
-            }
-            else
-            {
-                cout<<"zmq poll fail"<<endl;
-            }
+            //    }
+            //}
+            //else if (rc ==0 )//timeout
+            //{
+            //    continue;
+            //}
+            //else
+            //{
+            //    cout<<"zmq poll fail"<<endl;
+            //}
         }
         catch(zmq::error_t error)
         {
             cout<<"zmq recv error:"<<error.what()<<endl;
-    //            cout<<"error context addr:"<<(u_int)context<<endl;
             continue;
         }
     }

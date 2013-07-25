@@ -2,6 +2,8 @@
 #define MONITOR_XML_CLASS_SET_H
 #include <zmq.h>
 #include <deque>
+#include <vector>
+#include <string>
 using namespace std;
 
 class XML_ZMQ
@@ -105,31 +107,31 @@ private:
 	deque<XML_ZMQ> zmqdeque_;
 };
 
-class	XML_DID
-{
-public:
-	XML_DID(){};
-	~XML_DID(){};
-	static void set_did_config_path(std::string did_config_path)
-	{
-		did_config_path_ = did_config_path;
-	}
-	static  std::string get_did_config_path()
-	{
-		return did_config_path_;
-	}
-	static void push_did_templates_path(std::string & did_template_path)
-	{
-		did_templates_path_.push_back(did_template_path);
-	}
-	static vector<std::string>& get_did_templates_path()
-	{
-		return did_templates_path_;
-	}
-private:
-	static std::string did_config_path_;
-	static vector<std::string> did_templates_path_;
-};
+//class	XML_DID
+//{
+//public:
+//	XML_DID(){};
+//	~XML_DID(){};
+//	static void set_did_config_path(std::string did_config_path)
+//	{
+//		did_config_path_ = did_config_path;
+//	}
+//	static  std::string get_did_config_path()
+//	{
+//		return did_config_path_;
+//	}
+//	static void push_did_templates_path(std::string & did_template_path)
+//	{
+//		did_templates_path_.push_back(did_template_path);
+//	}
+//	static vector<std::string>& get_did_templates_path()
+//	{
+//		return did_templates_path_;
+//	}
+//private:
+//	static std::string did_config_path_;
+//	static vector<std::string> did_templates_path_;
+//};
 
 class XML_ListeningItem
 {
@@ -157,12 +159,30 @@ public:
 	{
 		return &parse_;
 	}
+	inline void set_did_config_path(std::string did_config_path)
+	{
+		did_config_path_ = did_config_path;
+	}
+	inline std::string get_did_config_path()
+	{
+		return did_config_path_;
+	}
+	inline void push_did_templates_path(std::string & did_template_path)
+	{
+		did_templates_path_.push_back(did_template_path);
+	}
+	vector<std::string>& get_did_templates_path()
+	{
+		return did_templates_path_;
+	}
 protected:
 private:
 	int port_;
 	std::string filter_;
 	XML_Capture cap_;
 	XML_Parse parse_;
+	std::string did_config_path_;
+	vector<std::string> did_templates_path_;
 };
 
 #endif

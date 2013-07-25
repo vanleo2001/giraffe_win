@@ -124,7 +124,7 @@ typedef struct bufelement
     int dport;
     char *flags;
     char *dctype;
-    long long seqtag;
+    unsigned long seqtag;
 }bufelement;
 
 typedef struct pcap_work_item

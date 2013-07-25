@@ -35,9 +35,9 @@ bool Capture::ReservePool(int pool_size)
 			sock->connect(this->zmqitems_[i].zmqsocketaddr.c_str());
 		}
 		sock_deque_.push_back(sock);
-
+		Sleep(100);
 		//init parse zmq property from config file
-		Parse* parse = new Parse(context_);
+		Parse* parse = new Parse(context_ , listening_item_);
 		deque<XML_ZMQ>* parse_zmq_deque = listening_item_.get_parse()->get_zmqdeque();
 		for(deque<XML_ZMQ>::iterator iter = parse_zmq_deque->begin();iter!=parse_zmq_deque->end();iter++)
 		{
@@ -71,7 +71,7 @@ void * Capture::RunThreadFunc()
     int devsnum= 0;
     pcap_if_t *d;
     int i;
-    int inum = 1;
+    int inum = adapter_id_;
     int len=65535;
     int mode= 1;
     int timeout=1000;
@@ -88,25 +88,7 @@ void * Capture::RunThreadFunc()
 		return ((void *)1);
 	}
 
-	for(d=alldevs; d; d=d->next)
-	{
-		cout<<++devsnum<<". "<<d->name;
-		if(d->description)
-			cout<<" ("<<d->description<<")"<<endl;
-		else
-			cout<<" (No description)"<<endl;
-	}
-
-	cout<<"Please input the number of adapter:"<<endl;
-	cin>>inum;
-	if(inum<1||inum>devsnum)
-	{
-		cout<<"Adapter number out of range!"<<endl;
-		pcap_freealldevs(alldevs);
-		return  ((void *)1);;
-	}
 	for(selecteddev=alldevs,i=0; i<inum-1; i++,selecteddev=selecteddev->next);
-
 
 	if((adhandle = pcap_open_live(selecteddev->name,len,mode,timeout,errbuf))==NULL)
 	{
@@ -197,8 +179,6 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
 	static int fintag = 0;
 	static int acktag = 0;
 
-
-
 	Capture *cap = (Capture *)param;
 	sock_deque = &(cap->sock_deque_);
 	sock_map = &(cap->sock_map_);
@@ -246,7 +226,7 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
 					{	
 						if(!sock_deque->empty())
 						{
-							zmq::socket_t * sock = sock_deque->front();;
+							zmq::socket_t * sock = sock_deque->front();
 							sock_deque->pop_front();
 							sock_map->insert(pair<std::string,zmq::socket_t *>(key_ip_src,sock));
 							cout<<"connection:key_ip:"<<key_ip_src<<endl;
@@ -264,9 +244,7 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
 							{
 								return ;
 							}
-
 						}
-								
 					}
 				}
 				else
@@ -281,72 +259,51 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
             }
         }
 		
-		if(FINACK == tcph->flags && tcpdisconntag == 0 && port == ntohs(tcph->dest))
+		//if(FINACK == tcph->flags && tcpdisconntag == 0 && port == ntohs(tcph->dest))
+		//{
+		//	tcpdisconntag = 1;
+		//	tcpdisconnstatus = 0;
+		//	tcpdisconnstatus |= 0x1;
+		//}
+		if(FINACK == tcph->flags && port == ntohs(tcph->source))
 		{
-			tcpdisconntag = 1;
-			tcpdisconnstatus = 0;
-			tcpdisconnstatus |= 0x1;
-		}
-		else if(ACK == tcph->flags && 1 == tcpdisconntag && port == ntohs(tcph->source))
-		{
-			tcpdisconnstatus |= 0x2;
-			tcpdisconntag = 0;
-			if(3 == tcpdisconnstatus)
+			map<std::string,zmq::socket_t*>::iterator iter_map;
+			cout<<"disconnect:key_ip"<<key_ip_dst<<endl;
+			if((iter_map=sock_map->find(key_ip_dst)) != sock_map->end())
 			{
-				tcpdisconnstatus = 0;
-				map<std::string,zmq::socket_t*>::iterator iter_map;
-				cout<<"disconnect:key_ip"<<key_ip_dst<<endl;
-				if((iter_map=sock_map->find(key_ip_dst)) != sock_map->end())
-				{
-					zmq::socket_t * sock =iter_map->second;
-					sock_deque->push_back(sock);
-					sock_map->erase(iter_map);
-					cout<<key_ip_dst<<" was disconnected!"<<endl;
-				}
-				else
-				{
-					cout<<"kill threads,but can't find the connection thread!"<<endl;
-				}
+				zmq::socket_t * sock =iter_map->second;
+				sock_deque->push_back(sock);
+				sock_map->erase(iter_map);
+				cout<<key_ip_dst<<" was disconnected!"<<endl;
 			}
 			else
 			{
-				tcpdisconnstatus = 0;
+				cout<<"kill threads,but can't find the connection thread!"<<endl;
 			}
-		}
-		else
-		{
-			tcpdisconntag = 0;
-			tcpdisconnstatus = 0;
 		}
 
-		//cout<<"key_ip_dst:"<<key_ip_dst<<endl;
-		//if(header->caplen > 60)//filter >60bytes packet
-		//{
-			//cout<<"header caplen:"<<header->caplen<<endl;
-			//cout<<"key_ip_dst:"<<key_ip_dst<<endl;
-			map<std::string,zmq::socket_t*>::iterator iter;
-			if((iter=sock_map->find(key_ip_dst)) != sock_map->end())
+		map<std::string,zmq::socket_t*>::iterator iter;
+		if((iter=sock_map->find(key_ip_dst)) != sock_map->end())
+		{
+			/*cout<<"key_ip_dst:"<<key_ip_dst<<endl;*/
+			zmq::socket_t * sock = iter->second;
+			pcap_work_item item;
+			item.port_tag = port;
+			item.header = *header;
+			memcpy(item.data,pkt_data,header->caplen);
+			try
 			{
-				/*cout<<"key_ip_dst:"<<key_ip_dst<<endl;*/
-				zmq::socket_t * sock = iter->second;
-				pcap_work_item item;
-				item.port_tag = port;
-				item.header = *header;
-				memcpy(item.data,pkt_data,header->caplen);
-				try
-				{
-					zmq::message_t msg (sizeof(pcap_work_item));
-					memcpy((void*)(msg.data()),&item,sizeof(item));
-					sock->send(msg,ZMQ_NOBLOCK);
-					
-					//sock->send(msg);
-					//Sleep(50);
-				}
-				catch(zmq::error_t error)
-				{
-					cout<<"cap: zmq send error!"<<error.what()<<endl;
-				}
+				zmq::message_t msg (sizeof(pcap_work_item));
+				memcpy((void*)(msg.data()),&item,sizeof(item));
+				//sock->send(msg,ZMQ_NOBLOCK);
+				int ret = sock->send(msg);
+				assert(true == ret);
 			}
+			catch(zmq::error_t error)
+			{
+				cout<<"cap: zmq send error!"<<error.what()<<endl;
+			}
+		}
 	//	}
 	}
 }
