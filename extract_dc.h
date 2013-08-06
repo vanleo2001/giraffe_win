@@ -402,9 +402,14 @@ public:
 
     BOOL HasTickCount(){return m_cHeadAttr_&CPS_DYNA_HEAD::HAS_TICK_COUNT ? TRUE : FALSE;}
 	BOOL HasAmount(){return m_cHeadAttr_&CPS_DYNA_HEAD::HAS_AMOUNT ? TRUE : FALSE;}
+	
+	void set_stk_total(int stk_total)
+	{
+		stk_total_ = stk_total;
+	}
 
     const struct STK_DYNA* GetOldDynaByID(STK_DYNA * pStkDyna, WORD index);
-    const struct STK_STATIC* GetStaticByID(STK_STATIC * pStkStatic, WORD index);
+    const struct STK_STATIC* GetStkByID(STK_STATIC * pStkStatic, WORD index);
 
 	DWORD GetDefaultHKSpread(DWORD dwPrice);
 
@@ -429,7 +434,7 @@ private:
 	time_t m_baseTime_;		//动态压缩基准时间
 	bool static_tag;
 	bool static_before_dyna_tag;
-
+	int stk_total_;
 };
 
 #pragma pack(pop)

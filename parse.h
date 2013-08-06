@@ -39,12 +39,14 @@ public:
     Parse(zmq::context_t * context, XML_ListeningItem &listening_item):listening_item_(listening_item)
     {
         context_ = context;
+		sock_recv_ = NULL;
+		sock_send_to_lua_routine_ = NULL;
+		sock_send_to_log_ = NULL;
         nHqTotal = 0;
         extractbuf = NULL;
         pStkStatic = NULL;
         pStkDyna = NULL;
         pStkMMPEx = NULL;
-		file_ = new MonitorFileMap("FX_191111.dat",MonitorFileMap::BUILD);
 		count_rc_ = 0;
 		last_pack_len_ = 0;
 		last_temp_len_ = 0;
@@ -55,6 +57,21 @@ public:
     };
     virtual ~Parse()
     {
+		if(NULL != sock_recv_)
+		{
+			delete sock_recv_;
+			sock_recv_ = NULL;
+		}
+		if(NULL != sock_send_to_log_)
+		{
+			delete sock_send_to_log_;
+			sock_send_to_log_ = NULL;
+		}
+		if(NULL != sock_send_to_lua_routine_)
+		{
+			delete sock_send_to_lua_routine_;
+			sock_send_to_lua_routine_ = NULL;
+		}
 		if(extractbuf != NULL)
 		{
 			delete[] extractbuf;
@@ -75,32 +92,35 @@ public:
 			delete[] pStkMMPEx;
 			pStkMMPEx = NULL;
 		}
-		if(file_ !=NULL)
-		{
-			delete file_;
-			file_=NULL;
-		}
 	};
 	void *RunThreadFunc();
+	void Init();
     BOOL DecryptDataPack(DC_HEAD * pData);
     BOOL ExtractDataPack(const DC_HEAD* pOrgHead,DC_HEAD* pHeadBuf,int nBufSize,WORD* pwMarketBuf=NULL);
 	bool IsDCType(int dc_type);
 	bool IsDCHeader(unsigned char * dc_header);
 	void CombinePacket(unsigned char * pdch, int dc_len);
-	void ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned char *pkt_data,zmq::socket_t * sock, int port_tag);
-	void DispatchToLua(lua_State *L, unsigned char * pdcdata, int dc_type, int stk_num, int stuct_size, int did_template_id=0);
-	void DispatchToLog(zmq::socket_t *sock, bufelement &info);
-	void DispatchToMonitor(int stk_id, std::string &value);
-    int nHqTotal;
+	void HandlePacket(struct pcap_pkthdr *header, unsigned char *pkt_data, int port_tag);
+	//void DispatchToLua(lua_State *L, unsigned char * pdcdata, int dc_type, int stk_num, int stuct_size, int did_template_id=0);
+	//void DispatchToLogThread(bufelement &info);
+	//void DispatchToMonitor(int stk_id, std::string &value);
+	//void DispatchToLuaRoutineThread(void * data, int size);
+	void DispatchData(zmq::socket_t * sock, void *data, size_t size);
+	int nHqTotal;
     char*  extractbuf;
     STK_STATIC *pStkStatic;
     STK_DYNA *pStkDyna;
     SH_L2_MMPEX *pStkMMPEx;
 protected:
 private:
-    zmq::context_t *context_;
+	void InitZMQ();
+	
+	zmq::context_t *context_;
+	zmq::socket_t *sock_recv_;
+	zmq::socket_t *sock_send_to_lua_routine_;
+	zmq::socket_t *sock_send_to_log_;
+	XML_ListeningItem listening_item_;
 	ExtractDC extractDC_;
-	MonitorFileMap * file_;
 	deque<CombinedPacketItem> combined_packet_deque_;
 	int count_rc_;
 	int long_pack_tag_;
@@ -112,7 +132,7 @@ private:
 	int dc_header_last_inner_len_;
 	unsigned long last_tcp_seq_;
 	unsigned char recombined_header_buf_[PCAPTOPARSE_BUF_SIZE];
-	XML_ListeningItem listening_item_;
+	
 };
 
 

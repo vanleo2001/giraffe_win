@@ -7,5 +7,5 @@ uint32	STKID;//股票ID
 dtime	UpdateTime;//数据更新GMT时间
 pfloat	Price;//成交价格
 }T_IOPV_INFO;
-#pragma unpack()
+#pragma pack()
 ]]

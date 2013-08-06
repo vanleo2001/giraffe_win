@@ -56,8 +56,7 @@ int cat_to( char *dest, const char *val, int pos )
 void DIDTemplateToLuaStruct::Transform(XML_ListeningItem &listening_item)
 {
 	xml2cfg config;
-	vector<std::string> & files = listening_item.get_did_templates_path();
-	int port = listening_item.get_port();
+	vector<std::string> & files = listening_item.get_did_template_paths();
 	for(vector<std::string>::iterator iter = files.begin();iter != files.end();iter++)
 	{
 		config.open((*iter).c_str());
@@ -118,7 +117,7 @@ void DIDTemplateToLuaStruct::Transform(XML_ListeningItem &listening_item)
 		_pos = cat_to(_lua_cdef,_name,_pos);
 		_pos = cat_to(_lua_cdef,";\n#pragma pack()\n]]\n",_pos);
 		char lua_file[64] = {0};
-		sprintf(lua_file,"%d_%s.lua",port,lua_file_name_pre.c_str());
+		sprintf(lua_file,"%s.lua",lua_file_name_pre.c_str());
 		FILE *_fp = fopen( lua_file, "wb" );
 		if( _fp	 != NULL )
 		{

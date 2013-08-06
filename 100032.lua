@@ -9,5 +9,5 @@ pfloat	Price;//价格
 int32	Pos;//档位
 int32	Vol;//挂撤单量
 }T_MMP_INFO;
-#pragma unpack()
+#pragma pack()
 ]]

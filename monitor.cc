@@ -40,8 +40,11 @@ int get_network_adapter()
 		cout<<"Error in pcap_findalldevs %s "<<errbuf<<endl;
 		return -1;
 	}
-	delete [] errbuf;
-	errbuf = NULL;
+	if(NULL != errbuf)
+	{
+		delete [] errbuf;
+		errbuf = NULL;
+	}
 
 	for(d=alldevs; d; d=d->next)
 	{
@@ -64,6 +67,52 @@ int get_network_adapter()
 		return inum;
 }
 
+void RunLogThread(zmq::context_t &context, Log &log ,XML_Log & xml_log)
+{
+	deque<XML_ZMQ> * log_zmqdeque = xml_log.get_zmqdeque();
+	//init log zmq property based on the config file
+	for(deque<XML_ZMQ>::iterator iter = log_zmqdeque->begin();iter!=log_zmqdeque->end();iter++)
+	{
+		ZMQItem zmq_item;
+		zmq_item.zmqpattern = (*iter).get_zmqpattern();
+		zmq_item.zmqsocketaction = (*iter).get_zmqsocketaction();
+		zmq_item.zmqsocketaddr = (*iter).get_zmqsocketaddr();
+		log.AddZMQItem(zmq_item);
+	}
+	log.Start();
+}
+
+void TransformDidTemplateToLua(XML_ListeningItem & xml_listening_item)
+{
+		DIDTemplateToLuaStruct did_to_lua;
+		did_to_lua.Transform(xml_listening_item);
+}
+
+void RunCaptureThread(zmq::context_t &context, deque<Capture> & capture_deque, deque<XML_ListeningItem> &listeningitem_deque, int adapter_id)
+{
+	//create capture thread based on the config file
+	for(deque<XML_ListeningItem>::iterator item=listeningitem_deque.begin();item != listeningitem_deque.end();item++)
+	{
+		TransformDidTemplateToLua(*item);
+		Capture capture_item(adapter_id, &context, *item);
+		capture_deque.push_back(capture_item);
+	}
+
+	for(deque<Capture>::iterator iter_capture=capture_deque.begin();iter_capture!=capture_deque.end();iter_capture++)
+	{
+		iter_capture->Init();
+		iter_capture->Start();
+	}
+}
+
+void JoinCaptureThread(deque<Capture> & capture_deque)
+{
+	for(deque<Capture>::iterator iter=capture_deque.begin();iter!=capture_deque.end();iter++)
+	{
+		iter->Join();
+	}
+}
+
 int main()
 {
 #ifndef __linux
@@ -77,48 +126,21 @@ int main()
 	config_parser.Parse();
 
 	zmq::context_t context(1);
-	//init log zmq property based on the config file
+
 	vector<int>& ports = config_parser.get_ports();
 	XML_Log & xml_log = config_parser.get_log_obj();
-	deque<XML_ZMQ> * log_zmqdeque = xml_log.get_zmqdeque();
 	Log log(&context,ports);
-	for(deque<XML_ZMQ>::iterator iter = log_zmqdeque->begin();iter!=log_zmqdeque->end();iter++)
-	{
-		ZMQItem zmq_item;
-		zmq_item.zmqpattern = (*iter).get_zmqpattern();
-		zmq_item.zmqsocketaction = (*iter).get_zmqsocketaction();
-		zmq_item.zmqsocketaddr = (*iter).get_zmqsocketaddr();
-		log.AddZMQItem(zmq_item);
-	}
-	log.Start();
-
-	//create capture thread based on the config file
+	RunLogThread(context, log, xml_log);
 
 	deque<Capture> capture_deque;
 	deque<XML_ListeningItem> & listeningitem_deque  = config_parser.get_listeningitems();
-	for(deque<XML_ListeningItem>::iterator item=listeningitem_deque.begin();item != listeningitem_deque.end();item++)
-	{
-		//did template to lua file
-		DIDTemplateToLuaStruct did_to_lua;
-		did_to_lua.Transform(*item);
-
-		Capture capture_item(adapter_id, &context, *item);
-		capture_deque.push_back(capture_item);
-	}
-
-	for(deque<Capture>::iterator iter_capture=capture_deque.begin();iter_capture!=capture_deque.end();iter_capture++)
-	{
-		iter_capture->Init();
-		iter_capture->Start();
-	}
-
-	for(deque<Capture>::iterator iter=capture_deque.begin();iter!=capture_deque.end();iter++)
-	{
-		iter->Join();
-	}
+	RunCaptureThread(context, capture_deque, listeningitem_deque, adapter_id);
+	JoinCaptureThread(capture_deque);
 
 	pthread_exit(NULL);
 	context.close();
+
+	//////////////////////////////////////////////////////////////////////////////
 	//EnableFriendllyExceptionHandle( true );
     //int n;
     //int i =0;

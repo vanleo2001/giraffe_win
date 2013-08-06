@@ -12,5 +12,5 @@ uint32	EtfSellNumber;//ETF赎回笔数
 vfloat	EtfSellAmount;//ETF赎回数量
 pfloat	EtfSellMoney;//ETF赎回金额
 }T_ETF_INFO;
-#pragma unpack()
+#pragma pack()
 ]]

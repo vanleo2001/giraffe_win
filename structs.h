@@ -14,6 +14,7 @@ using namespace std;
 
 const int PCAPTOPARSE_BUF_SIZE = 2048;
 const int COMBINED_PACKET_ITEM_SIZE = 409600;
+const int LUA_RECV_BUF_SIZE = 1048576;
 
 #pragma pack(push,1)
 
@@ -135,6 +136,17 @@ typedef struct pcap_work_item
     unsigned char data[PCAPTOPARSE_BUF_SIZE];
 }pcap_work_item;
 
+typedef struct Lua_ZMQ_MSG_Item
+{
+	int dc_type;
+	int dc_general_intype;
+	int stk_num;
+	int struct_size;
+	int did_template_id;
+	struct STK_STATIC * stk_static;
+	unsigned char *pdcdata;
+}Lua_ZMQ_MSG_Item;
+
 typedef struct ThreadFuncParams
 {
     string filter;
@@ -146,17 +158,15 @@ typedef struct ThreadFuncParams
     void *args;
 }ThreadFuncParams;
 
-typedef struct InCapThreadParam
+typedef struct CapInnerThreadParam
 {
-    int filtertag;
-    zmq::socket_t *sock;
-    unsigned int countnum;
-    long int timebase;
-    int timetag;
-    long long seqtag;
-}InCapThreadParam;
-
-
+	int tcpconntag;
+	int tcpconnstatus;
+	int tcpdisconntag;
+	int tcpdisconnstatus;
+	int fintag;
+	int acktag;
+}CapInnerThreadParam;
 
 typedef struct LogParam
 {
@@ -183,7 +193,7 @@ typedef struct ZMQItem
 	int zmqpattern;
 	std::string zmqsocketaction;
 	std::string zmqsocketaddr;
-	ZMQItem(){};
+	ZMQItem():zmqpattern(-1),zmqsocketaction(""),zmqsocketaddr(""){};
 	~ZMQItem(){};
 	ZMQItem(const ZMQItem & zmqitem)
 	{
@@ -193,6 +203,14 @@ typedef struct ZMQItem
 	}
 
 }ZMQItem;
+
+typedef struct DidStruct
+{
+	int id;
+	unsigned int whole_tag;
+	unsigned int compress_tag;
+	std::string file_path;
+}DidStruct;
 
 #pragma pack(pop)
 

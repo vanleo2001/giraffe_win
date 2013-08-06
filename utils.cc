@@ -134,6 +134,27 @@ char * Utils::DCTypeToString(int dc_type)
 	}
 }
 
+char *Utils::DCGeneral_IntypeToString(int dc_general_intype)
+{
+	switch(dc_general_intype)
+	{
+	case GE_STATIC_EX:
+		return "GE_STATIC_EX";
+	case GE_HKDYNA:
+		return "	GE_HKDYNA";
+	case GE_BLK_STK:
+		return "	GE_BLK_STK";
+	case GE_IOPV:
+		return "	GE_IOPV";
+	case GE_MATU_YLD:
+		return "GE_MATU_YLD";
+	case GE_HKREL_TXT:
+		return "GE_HIREL_TXT";
+	default:
+		return "UNKNOW DC_GENERAL INNER TYPE";
+	}
+}
+
 void Utils::Print_Thread_ID(pthread_t tid)
 {
 	size_t i;

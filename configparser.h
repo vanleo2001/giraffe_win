@@ -22,6 +22,7 @@ public:
 		return ports_;
 	}
 	void Parse();
+	std::string SplitDidTemplateId(std::string &did_template_path);
 protected:
 private:
 	std::string config_file_;

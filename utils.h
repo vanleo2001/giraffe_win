@@ -12,7 +12,7 @@ public:
     static int64 ToMword(unsigned long x);
     static unsigned int UINT24to32(unsigned short low,unsigned char high);
 	static char * DCTypeToString(int dc_type);
-	
+	static char * DCGeneral_IntypeToString(int dc_general_intype);
 	//pthread_t tid;
 	//tid =pthread_self();
 	//Utils::Print_Thread_ID(tid);

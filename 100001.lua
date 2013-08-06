@@ -11,5 +11,5 @@ byte	InOutFlag;//内外盘标记
 uint64	BuyOrderId;//买委托订单号
 uint64	SellOrderId;//卖委托订单号
 }T_BUY_SELL_TICK_INFO;
-#pragma unpack()
+#pragma pack()
 ]]

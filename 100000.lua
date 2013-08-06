@@ -16,5 +16,5 @@ vfloat	SellWithdrawAmount;//委卖撤单总金额
 uint32	BuyCount[10];//委买笔数1到10
 uint32	SellCount[10];//委卖笔数1到10
 }T_BUY_SELL_INFO;
-#pragma unpack()
+#pragma pack()
 ]]

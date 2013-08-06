@@ -1,7 +1,18 @@
 #include "configparser.h"
+#include <assert.h>
 #include <iostream>
 
 using namespace std;
+
+std::string ConfigParser::SplitDidTemplateId(std::string &did_template_path)
+{
+	int pre_pos = did_template_path.find_last_of("/\\");
+	int last_pos = did_template_path.find_last_not_of(".xml");
+	std::string did_template_id = did_template_path.substr(pre_pos+1 , last_pos-pre_pos);
+	cout<<did_template_id<<endl;
+	assert(!did_template_id.empty());
+	return did_template_id;
+}
 
 void ConfigParser::Parse()
 {
@@ -39,15 +50,6 @@ void ConfigParser::Parse()
 		config.get_prop_string(listeningitem_node,"filter",filter,NULL);
 		cout<<filter<<endl;
 		XML_ListeningItem listening_item(port, filter);
-	
-		xmlNodeSetPtr didconfig_nodeset = config.locate(listeningitem_node,"did_config");
-		if(didconfig_nodeset->nodeNr > 0)
-		{
-			xmlNodePtr didconfig_node = config.get_node(didconfig_nodeset,0);
-			std::string did_config_path;	
-			config.get_prop_string(didconfig_node,"configpath",did_config_path,NULL);
-			listening_item.set_did_config_path(did_config_path);
-		}
 
 		xmlNodeSetPtr didtemplate_nodeset = config.locate(listeningitem_node,"did_templates/did_template");
 		if(didtemplate_nodeset->nodeNr > 0)
@@ -57,7 +59,10 @@ void ConfigParser::Parse()
 				xmlNodePtr didtemplate_node = config.get_node(didtemplate_nodeset,i);
 				std::string did_template_path;
 				config.get_prop_string(didtemplate_node,"did_template_path",did_template_path,NULL);
-				listening_item.push_did_templates_path(did_template_path);
+				listening_item.push_did_template_paths(did_template_path);
+				std::string did_template_id = SplitDidTemplateId(did_template_path);
+				listening_item.push_did_template_ids(did_template_id);
+				listening_item.insert_did_filepath_map(std::pair<int, std::string>(atoi(did_template_id.c_str()), did_template_path));
 			}
 		}
 
@@ -77,6 +82,10 @@ void ConfigParser::Parse()
 			else if("Parse" == threadclass)
 			{
 				zmqdeque = listening_item.get_parse()->get_zmqdeque();
+			}
+			else if("LuaRoutine" == threadclass)
+			{
+				zmqdeque = listening_item.get_lua_routine()->get_zmqdeque();
 			}
 
 			xmlNodeSetPtr zmq_nodeset = config.locate(thread_node,"zmqs/zmq");

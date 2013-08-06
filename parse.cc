@@ -42,6 +42,7 @@ BOOL Parse::ExtractDataPack(const DC_HEAD* pOrgHead,DC_HEAD* pHeadBuf,int nBufSi
 		*pHeadBuf = *pOrgHead;
 		pHeadBuf->m_wAttrib &= ~DC_STD_CPS;
 
+		extractDC_.set_stk_total(nHqTotal);
 		nRet = extractDC_.ExtractData(pOrgHead->m_cType,pOrgData,(DWORD)pOrgHead->m_nLen.Get(),pDataBuf,nBufSize-sizeof(DC_HEAD),pStkDyna,pStkStatic);
 		if(nRet>0)
 		{
@@ -135,23 +136,7 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 			}
 		}
 
-		if(DC_TAG == temp_dch_item->m_cTag && 0 != temp_dch_item->m_nLen.Get() && IsDCType(temp_dch_item->m_cType))
-		{
-			//if(DCT_GENERAL == temp_dch_item->m_cType)
-			//{
-			//	DC_GENERAL_MY * test = (DC_GENERAL_MY *)(temp_dch_item + 1);
-			//	cout<<"general totallen:"<<test->m_nTotalLen<<endl;
-			//	cout<<"general num:"<<test->m_wNum<<endl;
-			//	cout<<"general datasize:"<<test->m_nDataSize<<endl;
-			//}
-		/*	cout<<"dc_type:"<<(int)(temp_dch_item->m_cType)<<endl;*/
-			packet_len = sizeof(DC_HEAD) + temp_dch_item->m_nLen.Get();
-			if(packet_len > MAX_PACKET_LEN)
-			{
-				packet_len = 0;
-			}
-		}
-		else if(last_pack_len_ != 0 && long_pack_tag_ == 1)
+		if(last_pack_len_ != 0 && long_pack_tag_ == 1)
 		{
 			packet_len = last_pack_len_;
 			if(packet_len > MAX_PACKET_LEN)
@@ -159,8 +144,17 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 				packet_len = 0;
 			}
 		}
-		else
+		if(1 != long_pack_tag_ && DC_TAG == temp_dch_item->m_cTag && 0 != temp_dch_item->m_nLen.Get() && IsDCType(temp_dch_item->m_cType))
+		{
+			packet_len = sizeof(DC_HEAD) + temp_dch_item->m_nLen.Get();
+			if(packet_len > MAX_PACKET_LEN)
+			{
+				packet_len = 0;
+			}
+		}
+		else if( 1 != long_pack_tag_)
 			packet_len = 0;
+
 		//case 1
 		if(!case2_tag_ && temp_len >= packet_len && 0 != packet_len)
 		{
@@ -220,6 +214,8 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 					break;
 				}
 			}
+			if(0 == packet_len)
+				break;
 		}
 	    if(0 != packet_len)
 		{
@@ -261,7 +257,7 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 					last_pack_len_ = 0;
 					last_temp_len_ = 0;
 					long_pack_tag_ = 0;
-					case2_tag_ = 0;
+					case2_tag_ = false;
 					break;
 				}
 				
@@ -277,20 +273,17 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 				last_pack_len_ = 0;
 				last_temp_len_ = 0;
 				long_pack_tag_ = 0;						
-				//imcomplete_packet_tag =0;
-				//first_imcomplete_len = 0;
-				//last_imcomplete_len = 0;
 				case2_tag_ = false;
 			}
 			else
 			{
-				//cout<<"-----------"<<endl;
+				cout<<"-----------"<<endl;
 				temp_len = 0;
 				packet_len = 0;
 				last_pack_len_ = 0;
 				last_temp_len_ = 0;
 				long_pack_tag_ = 0;
-				case2_tag_ = 0;
+				case2_tag_ = false;
 			}
 		}
 		else
@@ -301,7 +294,7 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 	}
 }
 
-void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned char *pkt_data,zmq::socket_t * sock, int port_tag)
+void Parse::HandlePacket(struct pcap_pkthdr *header, unsigned char *pkt_data, int port_tag)
 {
 	int extract_ret = 0;
 	static int did_sync_module_tag = 0;
@@ -309,6 +302,7 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
 	short stknum = 0;
 	int struct_size = 0;
 	unsigned char * pdcdata = NULL;
+	int dc_general_intype = 0;
 	
 	char *iproto = NULL;
 	unsigned short sport,dport;
@@ -417,8 +411,49 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
         }
         else if(DCT_SHL2_MMPEx == pdch->m_cType)
         {
-            
         }
+		else if(DCT_GENERAL == pdch->m_cType)
+		{
+			DC_GENERAL_MY * p = (DC_GENERAL_MY *)(pdch + 1);
+			pdcdata = (unsigned char *)(p+1);
+			stknum = p->m_wNum;
+			struct_size = p->m_nDataSize;
+			int total_len = p->m_nTotalLen;
+			int num = p->m_wNum;
+			int data_size = p->m_nDataSize;
+			if(GENERAL_STRUCT_FIX == p->m_dwDataAttr)
+			{
+				int len = sizeof(DC_GENERAL_MY ) + num * sizeof(WORD) + 	num * data_size;
+				if(GE_STATIC_EX == p->m_wDataID)
+				{
+					dc_general_intype = GE_STATIC_EX;
+
+				}
+				else if(GE_HKDYNA == p->m_wDataID)
+				{
+					dc_general_intype = GE_HKDYNA;
+				}
+			}
+			else if(GENERAL_FLOAT_FIX == p->m_dwDataAttr)
+			{
+				if(GE_IOPV == p->m_wDataID)
+				{
+					dc_general_intype = GE_IOPV;
+				}
+				else if(GE_MATU_YLD == p->m_wDataID)
+				{
+					dc_general_intype = GE_MATU_YLD;
+				}
+			}
+			else if(GENERAL_STRING_VAR == p->m_dwDataAttr)
+			{
+
+			}
+			else if(GENERAL_VAR == p->m_dwDataAttr)
+			{
+
+			}
+		}
 		else if(DCT_DSDATA == pdch->m_cType)
 		{
 			//write template files
@@ -448,7 +483,10 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
 		}
 		else if(DCT_DID == pdch->m_cType)
 		{
-			string did_config_file = listening_item_.get_did_config_path();
+			int port = listening_item_.get_port();
+			char temp_file[64];
+			sprintf(temp_file,"%d_did_config.xml",port);
+			std::string did_config_file(temp_file);
 			DidUncompress diducp(did_config_file);
 			diducp.ReadConfig();
 			diducp.Initialize();
@@ -475,8 +513,23 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
 
 		}
 		
-		DispatchToLua(L, pdcdata, pdch->m_cType, stknum, struct_size, did_template_id);
-		
+		if(NULL != pdcdata)
+		{
+			Lua_ZMQ_MSG_Item msg_item;
+			msg_item.dc_type = pdch->m_cType;
+			msg_item.dc_general_intype = dc_general_intype;
+			msg_item.stk_num = stknum;
+			msg_item.struct_size = struct_size;
+			msg_item.did_template_id = did_template_id;
+			msg_item.stk_static = pStkStatic;
+			int data_size = stknum * struct_size;
+			unsigned char *buf = (unsigned char *)malloc(data_size);
+			assert(NULL != buf);
+			memcpy(buf,pdcdata,data_size);
+			msg_item.pdcdata = buf;
+			DispatchData(sock_send_to_lua_routine_, &msg_item, sizeof(msg_item));
+		}
+
 		ih = (ip_head *)(pkt_data + 14); //14 bytes is the length of ethernet header
         iph_len = (ih->ver_ihl & 0xf) * 4;//20bytes
 
@@ -507,10 +560,24 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
 		info.daddrbyte4 = ih->daddr.byte4;
 		info.dport = dport;
 		info.flags = netflags;
-                           
-		info.dctype = Utils::DCTypeToString(pdch->m_cType);
+        
+		if(DCT_GENERAL == pdch->m_cType)
+		{
+			if(0 != dc_general_intype)
+			{
+				info.dctype = Utils::DCGeneral_IntypeToString(dc_general_intype);
+			}
+			else
+			{
+				info.dctype = Utils::DCTypeToString(pdch->m_cType);
+			}
+		}
+		else
+		{
+			info.dctype = Utils::DCTypeToString(pdch->m_cType);
+		}
 		info.seqtag = pdch->m_nSeq.Get();
-		DispatchToLog(sock, info);
+		DispatchData(sock_send_to_log_, &info, sizeof(info));
                             
 		combined_packet_deque_.pop_front();
 //                                try
@@ -544,124 +611,157 @@ void Parse::ExtractPacket(lua_State *L, struct pcap_pkthdr *header, unsigned cha
     }
 }
 
-void Parse::DispatchToLua(lua_State * L, unsigned char * pdcdata, int dc_type, int stk_num, int struct_size, int did_template_id)
+//void Parse::DispatchToLuaRoutineThread(void *data, int size)
+//{
+//	assert(NULL != data);
+//	zmq::message_t msg(size);
+//	memcpy(msg.data(), data, size);
+//	bool ret_val = sock_send_to_lua_routine_->send(msg);
+//	assert(true == ret_val);
+//}
+
+//void Parse::DispatchToLua(lua_State * L, unsigned char * pdcdata, int dc_type, int stk_num, int struct_size, int did_template_id)
+//{
+//	//did
+//	if(DCT_DID == dc_type)
+//	{
+//		for(int i=0;i<stk_num;i++)
+//		{
+//			//cout<<i<<endl;
+//			lua_getglobal(L,"process_did");
+//			lua_pushinteger(L,listening_item_.get_port());
+//			lua_pushinteger(L, did_template_id);
+//			lua_pushlightuserdata(L,pdcdata+i*struct_size);
+//			if(lua_pcall(L,3,1,0) != 0)
+//			{
+//				cout<<lua_tostring(L,-1)<<endl;
+//				lua_pop(L,-1);
+//				lua_close(L);
+//			}
+//			else
+//			{
+//			//	cout<<"did:"<<lua_tostring(L,-1)<<endl;
+//				lua_pop(L,-1);
+//			}
+//		}
+//	}
+//	//old
+//	if (DCT_STKSTATIC == dc_type || DCT_STKDYNA == dc_type)
+//	{
+//		//working_lua
+//		int countlua = 0;
+//		for(int i=0;i<stk_num;i++)
+//		{
+//			lua_getglobal(L,"process");
+//			lua_pushinteger(L, dc_type);
+//			lua_pushlightuserdata(L,pdcdata+struct_size * i);
+//			//Sleep(50);
+//			if(lua_pcall(L,2,2,0) != 0)
+//			{
+//				string s = lua_tostring(L,-1);
+//				std::cout<<s<<endl;
+//				lua_pop(L,-1);
+//				lua_close(L);
+//			}
+//			else
+//			{
+//				string lua_ret = lua_tostring(L,-1);
+//				int stkid = lua_tonumber(L, -2);
+//				//cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
+//				DispatchToMonitor(stkid, lua_ret);
+//				lua_pop(L,-1);
+//			}
+//		}
+//	}
+//}
+
+//void Parse::DispatchToMonitor(int stk_id, std::string & value)
+//{
+//	STK_STATIC * pstkstaticitem = const_cast<STK_STATIC *>(extractDC_.GetStaticByID(pStkStatic,stk_id));
+//	MonitorMsg *monitor_msg  = (MonitorMsg *)file_->GetMapMsg();
+//	time_t t;
+//	t = time(&t);
+//	dzh_time_t current_time(t);
+//	monitor_msg->time = current_time;
+//	strcpy(monitor_msg->error_type,"BUSINESS");
+//	strcpy(monitor_msg->error_level,"WARNING");
+//	strcpy( monitor_msg->stock_label, pstkstaticitem->m_strLabel );
+//	strcpy( monitor_msg->error_info, value.c_str() );
+//}
+
+void Parse::DispatchData(zmq::socket_t * sock, void *data, size_t size)
 {
-	//did
-	if(DCT_DID == dc_type)
+	assert(NULL != data && NULL != sock);
+	try
 	{
-		for(int i=0;i<stk_num;i++)
-		{
-			//cout<<i<<endl;
-			lua_getglobal(L,"process_did");
-			lua_pushinteger(L,listening_item_.get_port());
-			lua_pushinteger(L, did_template_id);
-			lua_pushlightuserdata(L,pdcdata+i*struct_size);
-			if(lua_pcall(L,3,1,0) != 0)
-			{
-				cout<<lua_tostring(L,-1)<<endl;
-				lua_pop(L,-1);
-				lua_close(L);
-			}
-			else
-			{
-			//	cout<<"did:"<<lua_tostring(L,-1)<<endl;
-				lua_pop(L,-1);
-			}
-		}
+		zmq::message_t msg(size);
+		memcpy(msg.data(), data, size);
+		sock->send(msg);
 	}
-	//old
-	if (DCT_STKSTATIC == dc_type || DCT_STKDYNA == dc_type)
+	catch(zmq::error_t error)
 	{
-		//working_lua
-		int countlua = 0;
-		for(int i=0;i<stk_num;i++)
-		{
-			lua_getglobal(L,"process");
-			lua_pushinteger(L, dc_type);
-			lua_pushlightuserdata(L,pdcdata+struct_size * i);
-			//Sleep(50);
-			if(lua_pcall(L,2,2,0) != 0)
-			{
-				string s = lua_tostring(L,-1);
-				std::cout<<s<<endl;
-				lua_pop(L,-1);
-				lua_close(L);
-			}
-			else
-			{
-				string lua_ret = lua_tostring(L,-1);
-				int stkid = lua_tonumber(L, -2);
-				//cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
-				DispatchToMonitor(stkid, lua_ret);
-				lua_pop(L,-1);
-			}
-		}
+		cout<<"zmq send error! error content:"<<error.what()<<endl;
+		assert(0);
 	}
 }
 
-void Parse::DispatchToMonitor(int stk_id, std::string & value)
+//void Parse::DispatchToLogThread(bufelement &info)
+//{
+//    try
+//    {
+//        zmq::message_t msg_send(sizeof(info));
+//        memcpy((void *)msg_send.data(),(char *)&info,sizeof(info));
+//        //sock->send(msg_send,ZMQ_NOBLOCK);
+//		sock_send_to_log_->send(msg_send);
+//    }
+//    catch(zmq::error_t error)
+//    {
+//        cout<<"zmq send error"<<error.what()<<endl;
+//    }
+//}
+
+void Parse::Init()
 {
-	STK_STATIC * pstkstaticitem = const_cast<STK_STATIC *>(extractDC_.GetStaticByID(pStkStatic,stk_id));
-	MonitorMsg *monitor_msg  = (MonitorMsg *)file_->GetMapMsg();
-	time_t t;
-	t = time(&t);
-	dzh_time_t current_time(t);
-	monitor_msg->time = current_time;
-	strcpy(monitor_msg->error_type,"BUSINESS");
-	strcpy(monitor_msg->error_level,"WARNING");
-	strcpy( monitor_msg->stock_label, pstkstaticitem->m_strLabel );
-	strcpy( monitor_msg->error_info, value.c_str() );
+	InitZMQ();
 }
 
-void Parse::DispatchToLog(zmq::socket_t *sock, bufelement &info)
+void Parse::InitZMQ()
 {
-    try
+    sock_recv_ = new zmq::socket_t (*context_, this->zmqitems_[0].zmqpattern);
+    if("bind" == this->zmqitems_[0].zmqsocketaction)
     {
-        zmq::message_t msg_send(sizeof(info));
-        memcpy((void *)msg_send.data(),(char *)&info,sizeof(info));
-        //sock->send(msg_send,ZMQ_NOBLOCK);
-		sock->send(msg_send);
+        sock_recv_->bind(this->zmqitems_[0].zmqsocketaddr.c_str());
     }
-    catch(zmq::error_t error)
+    else if("connect" == this->zmqitems_[0].zmqsocketaction)
     {
-        cout<<"zmq send error"<<error.what()<<endl;
+        sock_recv_->connect(this->zmqitems_[0].zmqsocketaddr.c_str());
+    }
+    sock_recv_->setsockopt(ZMQ_SUBSCRIBE,"",0);
+
+    sock_send_to_lua_routine_ = new zmq::socket_t (*context_, this->zmqitems_[1].zmqpattern);
+    if("bind" == this->zmqitems_[1].zmqsocketaction)
+    {
+        sock_send_to_lua_routine_->bind(this->zmqitems_[1].zmqsocketaddr.c_str());
+    }
+    else if("connect" == this->zmqitems_[1].zmqsocketaction)
+    {
+        sock_send_to_lua_routine_->connect(this->zmqitems_[1].zmqsocketaddr.c_str());
+    }
+
+    sock_send_to_log_ = new zmq::socket_t (*context_, this->zmqitems_[2].zmqpattern);
+    if("bind" == this->zmqitems_[1].zmqsocketaction)
+    {
+        sock_send_to_log_->bind(this->zmqitems_[2].zmqsocketaddr.c_str());
+    }
+    else if("connect" == this->zmqitems_[2].zmqsocketaction)
+    {
+        sock_send_to_log_->connect(this->zmqitems_[2].zmqsocketaddr.c_str());
     }
 }
 
 void *Parse::RunThreadFunc()
 {
 	pthread_detach(pthread_self());
-    zmq::context_t * context = context_;
-    zmq::socket_t socket_parse_rcv (*context, this->zmqitems_[0].zmqpattern);
-    if("bind" == this->zmqitems_[0].zmqsocketaction)
-    {
-        socket_parse_rcv.bind(this->zmqitems_[0].zmqsocketaddr.c_str());
-    }
-    else if("connect" == this->zmqitems_[0].zmqsocketaction)
-    {
-        socket_parse_rcv.connect(this->zmqitems_[0].zmqsocketaddr.c_str());
-    }
-    socket_parse_rcv.setsockopt(ZMQ_SUBSCRIBE,"",0);
-
-    zmq::socket_t socket_parse_send(*context, this->zmqitems_[1].zmqpattern);
-    if("bind" == this->zmqitems_[1].zmqsocketaction)
-    {
-        socket_parse_send.bind(this->zmqitems_[1].zmqsocketaddr.c_str());
-    }
-    else if("connect" == this->zmqitems_[1].zmqsocketaction)
-    {
-        socket_parse_send.connect(this->zmqitems_[1].zmqsocketaddr.c_str());
-    }
-
-    //zmq::socket_t socket_workinglua_send(*context, this->zmqitems_[2].zmqpattern);
-    //if("bind" == this->zmqitems_[2].zmqsocketaction)
-    //{
-    //    socket_workinglua_send.bind(this->zmqitems_[2].zmqsocketaddr.c_str());
-    //}
-    //else if("connect" == this->zmqitems_[2].zmqsocketaction)
-    //{
-    //    socket_workinglua_send.connect(this->zmqitems_[2].zmqsocketaddr.c_str());
-    //}
 
     //zmq::pollitem_t items[] = {socket_parse_rcv, 0, ZMQ_POLLIN, 0};
  
@@ -689,9 +789,6 @@ void *Parse::RunThreadFunc()
 	int tcph_len = 0;
 
 	zmq::message_t msg_rcv(sizeof(pcap_work_item));
-	lua_State* L = luaL_newstate();
-	luaL_openlibs(L);
-	luaL_dofile(L, "process.lua");
 	
     while(true)
     {
@@ -702,7 +799,7 @@ void *Parse::RunThreadFunc()
             //{
 				memset((void*)(msg_rcv.data()),0,sizeof(pcap_work_item));
                 //socket_parse_rcv.recv(&msg_rcv,ZMQ_NOBLOCK);
-				bool ret = socket_parse_rcv.recv(&msg_rcv);
+				bool ret = sock_recv_->recv(&msg_rcv);
 				assert(true == ret);
                 pw_item_ptr = static_cast<pcap_work_item*>(msg_rcv.data());
 
@@ -729,7 +826,7 @@ void *Parse::RunThreadFunc()
 							cout<<"dc_len:"<<dc_len<<endl<<flush;
 							last_tcp_seq_ = tcph->seq;
 							CombinePacket((unsigned char *)pdch,dc_len);
-							ExtractPacket(L, header,pkt_data,&socket_parse_send,port_tag);
+							HandlePacket(header,pkt_data,port_tag);
 						}
 					}
 					break;

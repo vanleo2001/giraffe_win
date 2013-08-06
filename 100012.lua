@@ -28,5 +28,5 @@ pfloat	ValueOfNetDebt;//纯债价值
 pfloat	ValueOfNetDebtRatio;//纯债溢价率
 pfloat	wholeprice;//全价
 }T_CBT_MARKET;
-#pragma unpack()
+#pragma pack()
 ]]

@@ -1,4 +1,5 @@
 #include "extract_dc.h"
+#include "generalcps.h"
 
 int ExtractDC::ExtractData(int dc_type, const unsigned char *pbufsrc, int bufsizesrc, unsigned char * pbufdes, int bufsizedes, STK_DYNA *pStkDyna, STK_STATIC *pStkStatic)
 {
@@ -112,14 +113,14 @@ int ExtractDC::ExtractData(int dc_type, const unsigned char *pbufsrc, int bufsiz
 //				nRet = nSize;
 	//	}
 	//	break;
-	//case DCT_GENERAL:
-	//	{
-//			nSize = bufsizedes;
-//			nRet = ExpandGeneralData(pbufsrc,bufsizesrc,(DC_GENERAL*)pbufdes,nSize);
-//			if(nRet<0)
-//				nRet = 0;
-	//	}
-	//	break;
+	case DCT_GENERAL:
+		{
+			nSize = bufsizedes;
+			nRet = ExpandGeneralData(pbufsrc,bufsizesrc,(DC_GENERAL*)pbufdes,nSize);
+			if(nRet<0)
+				nRet = 0;
+		}
+		break;
 	//case DCT_SZL2_ORDER_STAT:
 	//	{
 //			DC_SZL2_ORDER_STAT* pStat = (DC_SZL2_ORDER_STAT*)pbufdes;
@@ -352,7 +353,7 @@ BOOL ExtractDC::ExtractStaticStream(STK_STATIC* pStatic,WORD& wStockID,DWORD& dw
 				if(!pOldDyna)
 					throw("Get Dyna Info Fail");
 			}
-			pStatic = GetStaticByID(pStkStatic,pDyna->m_wStkID);
+			pStatic = GetStkByID(pStkStatic,pDyna->m_wStkID);
 			if(!pStatic)
 				throw("Get Stack Info fail");
 		}
@@ -856,9 +857,12 @@ const struct STK_DYNA* ExtractDC::GetOldDynaByID(STK_DYNA * pStkDyna,WORD index)
 		return NULL;
 }
 
-const struct STK_STATIC* ExtractDC::GetStaticByID(STK_STATIC * pStkStatic, WORD index)
+const struct STK_STATIC* ExtractDC::GetStkByID(STK_STATIC * pStkStatic, WORD index)
 {
-    return pStkStatic + index;
+	if(index <= stk_total_)
+		return pStkStatic + index;
+	else
+		return NULL;
 }
 
 int ExtractDC::ExpandL2MMPEx(const BYTE* pData,int nDataLen,SH_L2_MMPEX* pMMPExBuf,int& nBufSize)

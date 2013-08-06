@@ -2,6 +2,7 @@
 #define MONITOR_XML_CLASS_SET_H
 #include <zmq.h>
 #include <deque>
+#include <map>
 #include <vector>
 #include <string>
 using namespace std;
@@ -88,6 +89,19 @@ private:
 	deque<XML_ZMQ> zmqdeque_;
 };
 
+class XML_Lua_Routine
+{
+public:
+	XML_Lua_Routine(){};
+	~XML_Lua_Routine(){};
+	inline deque<XML_ZMQ> *get_zmqdeque()
+	{
+		return &zmqdeque_;
+	}
+private:
+	deque<XML_ZMQ> zmqdeque_;
+};
+
 class XML_Log
 {
 public:
@@ -159,21 +173,33 @@ public:
 	{
 		return &parse_;
 	}
-	inline void set_did_config_path(std::string did_config_path)
+	inline XML_Lua_Routine *get_lua_routine()
 	{
-		did_config_path_ = did_config_path;
+		return &lua_routine_;
 	}
-	inline std::string get_did_config_path()
+	inline void push_did_template_ids(std::string did_template_id)
 	{
-		return did_config_path_;
+		did_templates_ids_.push_back(did_template_id);
 	}
-	inline void push_did_templates_path(std::string & did_template_path)
+	inline void push_did_template_paths(std::string & did_template_path)
 	{
-		did_templates_path_.push_back(did_template_path);
+		did_templates_paths_.push_back(did_template_path);
 	}
-	vector<std::string>& get_did_templates_path()
+	inline void insert_did_filepath_map(std::pair<int, std::string>& element)
 	{
-		return did_templates_path_;
+		did_filepath_map_.insert(element);
+	}
+	inline map<int, std::string> & get_did_filepath_map()
+	{
+		return did_filepath_map_;
+	}
+	inline vector<std::string>& get_did_template_paths()
+	{
+		return did_templates_paths_;
+	}
+	inline vector<std::string> & get_did_template_ids()
+	{
+		return did_templates_ids_;
 	}
 protected:
 private:
@@ -181,8 +207,10 @@ private:
 	std::string filter_;
 	XML_Capture cap_;
 	XML_Parse parse_;
-	std::string did_config_path_;
-	vector<std::string> did_templates_path_;
+	XML_Lua_Routine lua_routine_;
+	vector<std::string> did_templates_paths_;
+	vector<std::string> did_templates_ids_;
+	map<int,std::string> did_filepath_map_;
 };
 
 #endif
