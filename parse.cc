@@ -13,6 +13,7 @@
 #include <sys/types.h>
 #include <assert.h>
 #include <zlib.h>
+#include <set>
 
 
 const int MAX_PACKET_LEN = 409600;
@@ -90,14 +91,11 @@ bool Parse::IsDCType(int dc_type)
 		return true;
 }
 
-void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
+void Parse::CombineDCPacket(unsigned char *pdch, int dc_len)
 {
 	int temp_len = dc_len;
 	unsigned char *temp_pdch = (unsigned char *)pdch;
 	DC_HEAD *temp_dch_item = (DC_HEAD *)temp_pdch;
-	//int imcomplete_packet_tag = 0;
-	//int first_imcomplete_len = 0;
-	//int last_imcomplete_len = 0;
 	int packet_len = 0;
 	int recombined_header_bufsize = 0;
 	while(temp_len > 0)
@@ -221,7 +219,13 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 		{
 			//case 2
 			cout<<"case2 templen:"<<temp_len<<" packet_len:"<<packet_len<<endl<<flush;
-			if(0 != packet_len && packet_len > temp_len && DC_TAG == temp_dch_item->m_cTag && last_pack_len_ == 0 && IsDCType(temp_dch_item->m_cType))
+			//过滤掉拼包还没完成，但是却收到一些其他包的情况。（比较少见！比如在拼dc_static过程中却收到dc_dsdata包）
+			/*if(0 != packet_len && last_pack_len_ > 0 && packet_len > temp_len && DC_TAG == temp_dch_item->m_cTag && IsDCType(temp_dch_item->m_cType))
+			{
+			temp_len = 0;
+			break;
+			}*/
+			if(0 != packet_len && last_pack_len_ == 0 && packet_len > temp_len && DC_TAG == temp_dch_item->m_cTag && IsDCType(temp_dch_item->m_cType))
 			{
 				case2_tag_ = true;
 				long_pack_tag_ = 1;
@@ -294,7 +298,7 @@ void Parse	::CombinePacket(unsigned char *pdch, int dc_len)
 	}
 }
 
-void Parse::HandlePacket(struct pcap_pkthdr *header, unsigned char *pkt_data, int port_tag)
+void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int port_tag)
 {
 	int extract_ret = 0;
 	static int did_sync_module_tag = 0;
@@ -498,10 +502,6 @@ void Parse::HandlePacket(struct pcap_pkthdr *header, unsigned char *pkt_data, in
 				stknum = did_head->GetRecNum();
 				struct_size = data_buf.GetLen()/stknum;
 				pdcdata = (unsigned char *)(data_buf.GetData());
-							
-				//cout<<"did num?:"<<did_head->GetDid()<<endl;//did num
-				//cout<<"did template struct size?:"<<struct_size<<endl;//did_head length
-				//cout<<"did stknum?"<<did_head->GetRecNum()<<endl;//stknum
 			}
 			else
 			{
@@ -541,7 +541,7 @@ void Parse::HandlePacket(struct pcap_pkthdr *header, unsigned char *pkt_data, in
         dport = ntohs( tcph->dest );
         netflags = Utils::tcp_flag_to_str(tcph->flags);
 		/* convert the timestamp to readable format */
-		local_tv_sec = header->ts.tv_sec;
+		local_tv_sec = timestamp.tv_sec;
 		ltime=localtime(&local_tv_sec);
 		memset(info.timestamp, 0, sizeof(info.timestamp));
 		strftime(info.timestamp, sizeof(info.timestamp), "%H:%M:%S", ltime);
@@ -620,75 +620,6 @@ void Parse::HandlePacket(struct pcap_pkthdr *header, unsigned char *pkt_data, in
 //	assert(true == ret_val);
 //}
 
-//void Parse::DispatchToLua(lua_State * L, unsigned char * pdcdata, int dc_type, int stk_num, int struct_size, int did_template_id)
-//{
-//	//did
-//	if(DCT_DID == dc_type)
-//	{
-//		for(int i=0;i<stk_num;i++)
-//		{
-//			//cout<<i<<endl;
-//			lua_getglobal(L,"process_did");
-//			lua_pushinteger(L,listening_item_.get_port());
-//			lua_pushinteger(L, did_template_id);
-//			lua_pushlightuserdata(L,pdcdata+i*struct_size);
-//			if(lua_pcall(L,3,1,0) != 0)
-//			{
-//				cout<<lua_tostring(L,-1)<<endl;
-//				lua_pop(L,-1);
-//				lua_close(L);
-//			}
-//			else
-//			{
-//			//	cout<<"did:"<<lua_tostring(L,-1)<<endl;
-//				lua_pop(L,-1);
-//			}
-//		}
-//	}
-//	//old
-//	if (DCT_STKSTATIC == dc_type || DCT_STKDYNA == dc_type)
-//	{
-//		//working_lua
-//		int countlua = 0;
-//		for(int i=0;i<stk_num;i++)
-//		{
-//			lua_getglobal(L,"process");
-//			lua_pushinteger(L, dc_type);
-//			lua_pushlightuserdata(L,pdcdata+struct_size * i);
-//			//Sleep(50);
-//			if(lua_pcall(L,2,2,0) != 0)
-//			{
-//				string s = lua_tostring(L,-1);
-//				std::cout<<s<<endl;
-//				lua_pop(L,-1);
-//				lua_close(L);
-//			}
-//			else
-//			{
-//				string lua_ret = lua_tostring(L,-1);
-//				int stkid = lua_tonumber(L, -2);
-//				//cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
-//				DispatchToMonitor(stkid, lua_ret);
-//				lua_pop(L,-1);
-//			}
-//		}
-//	}
-//}
-
-//void Parse::DispatchToMonitor(int stk_id, std::string & value)
-//{
-//	STK_STATIC * pstkstaticitem = const_cast<STK_STATIC *>(extractDC_.GetStaticByID(pStkStatic,stk_id));
-//	MonitorMsg *monitor_msg  = (MonitorMsg *)file_->GetMapMsg();
-//	time_t t;
-//	t = time(&t);
-//	dzh_time_t current_time(t);
-//	monitor_msg->time = current_time;
-//	strcpy(monitor_msg->error_type,"BUSINESS");
-//	strcpy(monitor_msg->error_level,"WARNING");
-//	strcpy( monitor_msg->stock_label, pstkstaticitem->m_strLabel );
-//	strcpy( monitor_msg->error_info, value.c_str() );
-//}
-
 void Parse::DispatchData(zmq::socket_t * sock, void *data, size_t size)
 {
 	assert(NULL != data && NULL != sock);
@@ -759,6 +690,19 @@ void Parse::InitZMQ()
     }
 }
 
+void Parse::DownloadData(unsigned char * data, size_t len)
+{
+	size_t length = len + sizeof(size_t);
+	char *buf = (char *)malloc(length);
+	memcpy(buf, &len, sizeof(size_t));
+	memcpy(buf + 4, data, len);
+	Utils::WriteIntoFile("test_data.txt", "ab+", buf, length);	
+	free(buf);
+	buf = NULL;
+}
+
+
+
 void *Parse::RunThreadFunc()
 {
 	pthread_detach(pthread_self());
@@ -787,6 +731,11 @@ void *Parse::RunThreadFunc()
 	int head_len = 0;
 	int iph_len = 0;
 	int tcph_len = 0;
+	unsigned long tcp_expect_seq = 0;
+	unsigned long tcp_current_seq = 0;
+	unsigned long tcp_data_len = 0 ;
+	int disorder_tag = 0;
+	set<TcpDisorderSetItem> tcp_disorder_set;
 
 	zmq::message_t msg_rcv(sizeof(pcap_work_item));
 	
@@ -817,17 +766,105 @@ void *Parse::RunThreadFunc()
 				{
 				case TCP:
 					pdch = (DC_HEAD*)((u_char*)pkt_data +14 + head_len);//54= 14+20+20 ethernet head:14bytes, ip head:20bytes, tcp head:20bytes
-					dc_len = ntohs(ih->tlen) - head_len;
-
-					if(dc_len > 0)
+					tcp_data_len = ntohs(ih->tlen) - head_len;//must use ih->tlen, because sometime it will have supplement package.
+					tcp_current_seq = ntohl(tcph->seq);
+					if(tcp_data_len > 0)
 					{
-						if(last_tcp_seq_ != tcph->seq)//filter the same tcp seq
+					 	DownloadData((unsigned char *)pdch, tcp_data_len);
+						if(!disorder_tag)
 						{
-							cout<<"dc_len:"<<dc_len<<endl<<flush;
-							last_tcp_seq_ = tcph->seq;
-							CombinePacket((unsigned char *)pdch,dc_len);
-							HandlePacket(header,pkt_data,port_tag);
+							if(tcp_expect_seq == 0 || tcp_expect_seq == tcp_current_seq)
+							{
+								cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+							 	CombineDCPacket((unsigned char *)pdch,tcp_data_len);
+							 	HandlePacket(header->ts,pkt_data,port_tag);
+								tcp_expect_seq = tcp_current_seq + tcp_data_len;
+							}
+							else if(tcp_expect_seq > tcp_current_seq)
+							{
+								cout<<"tcp_expect_seq > tcp_current_seq"<<endl;
+								break;		
+							}
+							else
+							{
+								disorder_tag = 1;
+								unsigned char *pktdata = (unsigned char *)malloc(header->caplen);
+								assert(NULL != pktdata);
+								memcpy(pktdata, (unsigned char *)pkt_data, header->caplen);
+								TcpDisorderSetItem item;
+								item.tcp_seq = tcp_current_seq;
+								item.tcp_data_len = tcp_data_len;
+								item.timestamp = header->ts;
+								item.pktdata = pktdata; 
+								tcp_disorder_set.insert(item);
+							}
 						}
+						else//disorder
+						{
+							if(tcp_expect_seq == tcp_current_seq)
+							{
+								cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+							 	CombineDCPacket((unsigned char *)pdch,tcp_data_len);
+							 	HandlePacket(header->ts,pkt_data,port_tag);
+								tcp_expect_seq = tcp_current_seq + tcp_data_len;
+								for(set<TcpDisorderSetItem>::iterator iter=tcp_disorder_set.begin();iter != tcp_disorder_set.end();iter++)
+								{
+									tcp_current_seq = iter->tcp_seq;
+									tcp_data_len = iter->tcp_data_len;
+									pkt_data = iter->pktdata;
+									struct timeval timestamp = iter->timestamp;
+									if(tcp_expect_seq == tcp_current_seq)
+									{
+										cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+									 	CombineDCPacket(pkt_data+54,tcp_data_len);
+									 	HandlePacket(timestamp,pkt_data,port_tag);
+										tcp_expect_seq = tcp_current_seq + tcp_data_len;
+										free(pkt_data);
+										pkt_data = NULL;
+										tcp_disorder_set.erase(iter);
+									}
+									else
+									{
+										cout<<"the special case!"<<endl;
+										break;
+									}
+								}
+								if(tcp_disorder_set.empty())
+								{
+									disorder_tag = 0;
+								}
+							}
+							else if(tcp_expect_seq > tcp_current_seq)
+							{
+								break;
+							}
+							else
+							{
+								unsigned char *pktdata = (unsigned char *)malloc(header->caplen);
+								assert(NULL != pktdata);
+								memcpy(pktdata, (unsigned char *)pkt_data, header->caplen);
+								TcpDisorderSetItem item;
+								item.tcp_seq = tcp_current_seq;
+								item.tcp_data_len = tcp_data_len;
+								item.timestamp = header->ts;
+								item.pktdata = pktdata; 
+								tcp_disorder_set.insert(item);
+							}
+						}
+						
+						//old code 
+						 //if(last_tcp_seq_ < current_tcp_seq)//filter the same tcp seq
+						 //{
+						 //	cout<<"tcp seq:"<<current_tcp_seq<<" dc_len:"<<dc_len<<endl<<flush;
+						 //	last_tcp_seq_ = current_tcp_seq;
+						 //	DownloadData((unsigned char *)pdch, dc_len);
+						 //	CombineDCPacket((unsigned char *)pdch,dc_len);
+						 //	HandlePacket(header,pkt_data,port_tag);
+						 //}
+						 //else
+						 //{
+						 //	cout<<"warning: last tcp seq("<<last_tcp_seq_<<") >= current tcp seq("<<current_tcp_seq<<")!"<<endl;
+						 //}
 					}
 					break;
 				case UDP:

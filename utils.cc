@@ -163,4 +163,19 @@ void Utils::Print_Thread_ID(pthread_t tid)
 	printf("\n");
 }
 
+void Utils::WriteIntoFile(const char *file_name, const char *mode, const void* data , size_t length)
+{
+	FILE * fp = fopen(file_name, mode);
+	if(NULL != fp)
+	{
+		fwrite(data, 1, length + 1, fp);
+		fclose(fp);
+	}
+	else
+	{
+		cout<<"open file error!"<<endl;
+		assert(0);
+	}
+}
+
 

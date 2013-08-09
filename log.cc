@@ -69,7 +69,7 @@ void * Log::RunThreadFunc()
                     if(it != logmapping.end())
                     {
                         log = it->second;
-                        log->info("%s len:%d %s %d.%d.%d.%d:%d -> %d.%d.%d.%d:%d flags:%s dc_type:%s seq:%lu",
+                        log->info("%s len:%-5d %-6s %d.%d.%d.%d:%-6d -> %d.%d.%d.%d:%-6d flags:%-10s dc_type:%-16s seq:%-10lu",
                                 info.timestamp,
                                 info.len,
                                 info.iproto,

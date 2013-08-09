@@ -23,6 +23,20 @@ typedef struct CombinedPacketItem
 	char data[COMBINED_PACKET_ITEM_SIZE];
 }CombinedPacketItem;
 
+typedef struct TcpDisorderSetItem
+{
+	unsigned long tcp_seq;
+	unsigned long tcp_data_len;
+	struct timeval timestamp;
+	unsigned char *pktdata;
+
+	//overwrite the operator <
+	bool operator < (const TcpDisorderSetItem &item) const
+	{
+		return tcp_seq < item.tcp_seq;
+	}
+}TcpDisorderSetItem;
+
 /* 4 bytes IP address */
 typedef struct ip_address
 {

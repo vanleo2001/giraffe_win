@@ -166,8 +166,8 @@ void * LuaRoutine::RunThreadFunc()
 	{
 		msg_rcv.rebuild();
 		sock_->recv(&msg_rcv);
-		Lua_ZMQ_MSG_Item * msg_item = (Lua_ZMQ_MSG_Item*)(msg_rcv.data());
+		Lua_ZMQ_MSG_Item *msg_item = (Lua_ZMQ_MSG_Item*)(msg_rcv.data());
 		stk_static_ = msg_item->stk_static;
-		DispatchToLua(msg_item->pdcdata,msg_item->dc_type,msg_item->dc_general_intype,msg_item->stk_num,msg_item->struct_size,msg_item->did_template_id);
+		DispatchToLua(msg_item->pdcdata, msg_item->dc_type, msg_item->dc_general_intype, msg_item->stk_num, msg_item->struct_size, msg_item->did_template_id);
 	}
 }

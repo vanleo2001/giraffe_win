@@ -132,26 +132,40 @@ bool Capture::IncreasePool(int pool_size)
 	return true;
 }
 
-void WriteDidConfFile(int port, vector<DidStruct> &did_structs)
+void CreateDidConfContent(vector<DidStruct> & did_structs, char * out_str)
 {
-	char did_conf_file[64] = {0};
-	sprintf(did_conf_file, "%d_did_config.xml", port);
-	char fstr[2048] = {0};
+	assert(NULL != out_str);
 	char did_content[256] = {0};
-	strcat(fstr, "<?xml version=\"1.0\" encoding=\"gb2312\" ?>\n <DidStruct>\n");
+	strcat(out_str, "<?xml version=\"1.0\" encoding=\"gb2312\" ?>\n <DidStruct>\n");
 	for(vector<DidStruct>::iterator iter = did_structs.begin();iter != did_structs.end();iter++)
 	{
 		memset(did_content, 0,sizeof(did_content));
 		sprintf(did_content, "\t <did id=\"%d\" file=\"%s\" whole=\"%u\" compress=\"%u\" /> \n", iter->id ,iter->file_path.c_str(),iter->whole_tag,iter->compress_tag);
-		strcat(fstr, did_content);
+		strcat(out_str, did_content);
 	}
-	strcat(fstr, "</DidStruct>\n");
-	FILE * fp = fopen(did_conf_file, "wb");
-	if(NULL != fp)
-	{
-		fwrite(fstr,1,strlen(fstr), fp);
-		fclose(fp);
-	}
+	strcat(out_str, "</DidStruct>\n");
+}
+
+//void WriteIntoFile(const char *file_name, const char *mode, const void* data , size_t length)
+//{
+//	FILE * fp = fopen(file_name, mode);
+//	if(NULL != fp)
+//	{
+//		fwrite(data, 1, length, fp);
+//		fclose(fp);
+//	}
+//	else
+//	{
+//		cout<<"open file error!"<<endl;
+//		assert(0);
+//	}
+//}
+
+void WriteDidConfFile(const char * file_name, vector<DidStruct> &did_structs)
+{
+	char file_content[2048] = {0};
+	CreateDidConfContent(did_structs, file_content);
+	Utils::WriteIntoFile(file_name, "wb", file_content, strlen(file_content));
 }
 
 bool IsTcpConnection(unsigned char flags, int &tcpconntag, int &tcpconnstatus)
@@ -203,24 +217,26 @@ bool IsTcpDisConnection(unsigned char flags, int port, unsigned short src_port)
 	return false;
 }
 
-void DispatchToParsingThread(zmq::socket_t * sock, void * data, int size)
+void DispatchData(zmq::socket_t * sock, void * data, int size)
 {
+	assert(NULL != sock && NULL != data);
 	try
 	{
 		zmq::message_t msg(size);
 		memcpy((void*)(msg.data()), data, size); 
 		//sock->send(msg,ZMQ_NOBLOCK);
 		int ret = sock->send(msg);
-		assert(true == ret);
 	}
 	catch(zmq::error_t error)
 	{
-		cout<<"cap: zmq send error!"<<error.what()<<endl;
+		cout<<"cap: zmq send error! error content:"<<error.what()<<endl;
+		assert(0);
 	}
 }
 
 void * Capture::RunThreadFunc()
 {
+	remove("test_data.txt");
     pcap_if_t * alldevs ;
     char *errbuf= new char[PCAP_ERRBUF_SIZE];
     int devsnum= 0;
@@ -232,7 +248,6 @@ void * Capture::RunThreadFunc()
     int timeout=1000;
     pcap_addr_t *a;
     struct bpf_program fcode;
-    int filtertag = 0;
     pcap_if_t *selecteddev;
     pcap_t *adhandle;
     unsigned int netmask;
@@ -287,14 +302,15 @@ void * Capture::RunThreadFunc()
 	}
 	
 	//dump file
-	pcap_dumper_t *dumper;
-	dumper = pcap_dump_open(adhandle,"dumper.txt");
-	if(dumper == NULL)
-	{
-		cout<<"can't open dumper filer~!"<<endl;
-	}
+	//pcap_dumper_t *dumper;
+	//dumper = pcap_dump_open(adhandle,"dumper.txt");
+	//if(dumper == NULL)
+	//{
+	//	cout<<"can't open dumper filer~!"<<endl;
+	//}
 
 	delete [] errbuf;
+	errbuf = NULL;
 	pcap_freealldevs(alldevs);
 
 	CapInnerThreadParam in_thread_param;
@@ -409,90 +425,9 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
 				cout<<"kill threads,but can't find the connection thread!"<<endl;
 			}
 		}
-  //      if(SYN == tcph->flags)
-  //      {
-  //          tcpconntag = 1;
-  //          tcpconnstatus = 0;
-  //      }
-  //      if(1 == tcpconntag)
-  //      {
-  //          if(SYN == tcph->flags)
-  //          {
-  //              tcpconnstatus |= 0x1;
-  //          }
-  //          else if(SYNACK == tcph->flags)
-  //          {
-  //              tcpconnstatus |= 0x2;
-  //          }
-  //          else if(ACK == tcph->flags)
-  //          {
-  //              tcpconnstatus |= 0x4;
-  //              tcpconntag = 0;
-		//		if(7 == tcpconnstatus)
-		//		{
-		//			cout<<"A new connection was been built! The ip and port is:"<<key_ip_src<<endl;
-		//			tcpconnstatus = 0;
-		//			if(sock_map->end() == sock_map->find(key_ip_src))
-		//			{	
-		//				if(!sock_deque->empty())
-		//				{
-		//					zmq::socket_t * sock = sock_deque->front();
-		//					sock_deque->pop_front();
-		//					sock_map->insert(pair<std::string,zmq::socket_t *>(key_ip_src,sock));
-		//					cout<<"connection:key_ip:"<<key_ip_src<<endl;
-		//				}
-		//				else
-		//				{
-		//					if(cap->IncreasePool(kPoolSize))
-		//					{
-		//						zmq::socket_t *sock = sock_deque->front();
-		//						sock_deque->pop_front();
-		//						sock_map->insert(pair<std::string,zmq::socket_t *>(key_ip_src,sock));
-		//						cout<<"connection:key_ip:"<<key_ip_src<<endl;
-		//					}
-		//					else
-		//					{
-		//						return ;
-		//					}
-		//				}
-		//			}
-		//		}
-		//		else
-		//		{
-		//			tcpconnstatus = 0;
-		//		}
-  //          }
-  //          else
-  //          {
-  //              tcpconntag = 0;
-  //              tcpconnstatus = 0;
-  //          }
-  //      }
-		//
-		////if(FINACK == tcph->flags && tcpdisconntag == 0 && port == ntohs(tcph->dest))
-		////{
-		////	tcpdisconntag = 1;
-		////	tcpdisconnstatus = 0;
-		////	tcpdisconnstatus |= 0x1;
-		////}
-		//if(FINACK == tcph->flags && port == ntohs(tcph->source))
-		//{
-		//	map<std::string,zmq::socket_t*>::iterator iter_map;
-		//	cout<<"disconnect:key_ip"<<key_ip_dst<<endl;
-		//	if((iter_map=sock_map->find(key_ip_dst)) != sock_map->end())
-		//	{
-		//		zmq::socket_t * sock =iter_map->second;
-		//		sock_deque->push_back(sock);
-		//		sock_map->erase(iter_map);
-		//		cout<<key_ip_dst<<" was disconnected!"<<endl;
-		//	}
-		//	else
-		//	{
-		//		cout<<"kill threads,but can't find the connection thread!"<<endl;
-		//	}
-		//}
 
 		map<std::string,zmq::socket_t*>::iterator iter;
+		//caishu  --> zhongzhuan
 		if((iter=sock_map->find(key_ip_dst)) != sock_map->end())
 		{
 			/*cout<<"key_ip_dst:"<<key_ip_dst<<endl;*/
@@ -500,21 +435,9 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
 			item.port_tag = port;
 			item.header = *header;
 			memcpy(item.data,pkt_data,header->caplen);
-			DispatchToParsingThread(iter->second, &item, sizeof(item));
-			//try
-			//{
-			//	zmq::message_t msg (sizeof(pcap_work_item));
-			//	memcpy((void*)(msg.data()),&item,sizeof(item));
-			//	//sock->send(msg,ZMQ_NOBLOCK);
-			//	int ret = sock->send(msg);
-			//	assert(true == ret);
-			//}
-			//catch(zmq::error_t error)
-			//{
-			//	cout<<"cap: zmq send error!"<<error.what()<<endl;
-			//}
+			DispatchData(iter->second, &item, sizeof(item));
 		}
-		else //port == ntohs(tcp->dst)
+		else //zhongzhuan  --> caishu
 		{
 			DC_HEAD * pdch = (DC_HEAD *)(pkt_data + 54);//	54= 14+20+20 ethernet head:14bytes, ip head:20bytes, tcp head:20bytes
 			if(DC_TAG == pdch->m_cTag && DCT_DSDID == pdch->m_cType)
@@ -537,7 +460,10 @@ void Capture::PacketHandler(unsigned char *param, const struct pcap_pkthdr *head
 						pdsdid += 1;
 					}
 				}
-				WriteDidConfFile(port, did_structs);
+
+				char did_conf_file[64] = {0};
+				sprintf(did_conf_file, "%d_did_config.xml", port);
+				WriteDidConfFile(did_conf_file, did_structs);
 			}
 		}
 	}

@@ -280,6 +280,7 @@ typedef struct STK_HKDYNA
 
 local C = ffi.C
 
+
 function FormatReturnError(dc_type,ret_error)
 	local ret_str
 	if(ret_error ~= nil) then
@@ -360,36 +361,40 @@ function process_general(intype,data)
 			--print(stk.m_cType)
 			--print(stk.m_cSubType)
 			if(stk.m_cType == 1) then
+				ret_str = nil
 				--print("equity")
 				--print(stk.Spec.m_equitySpec.m_fFaceValue)
 				--print(stk.Spec.m_equitySpec.m_fProfit)
 				--print(stk.Spec.m_equitySpec.m_wIndustry)
 			elseif(stk.m_cType == 2) then
-				
+				ret_str = nil
 			elseif(stk.m_cType == 3) then
+				ret_str = nil
 				--print("warrantSpec")
 				--print(stk.Spec.m_warrantSpec.m_cStyle)
 				--print(stk.Spec.m_warrantSpec.m_cCP)
 				--print(stk.Spec.m_warrantSpec.m_fStrikePrice)
 			elseif(stk.m_cType == 4) then
+				ret_str = nil
 				--print("bondSpec")
 				--print(stk.Spec.m_bondSpec.m_dwMaturityDate)
 				--print(stk.Spec.m_bondSpec.m_dwIntAccruDate)
 				--print(stk.Spec.m_bondSpec.m_fIssuePrice)
 				--print(stk.Spec.m_bondSpec.m_fFaceValue)
 			elseif(stk.m_cType == 5) then
-
+				ret_str = nil
 			elseif(stk.m_cType == 6) then
 				dc_type = "staticex future"
 				ret_error = handle_future(stk.Spec.m_futureSpec)
-				ret_str = FormatReturnString(dc_type,ret_error)
+				ret_str = FormatReturnError(dc_type,ret_error)
 			elseif(stk.m_cType == 7) then
-
+				ret_str = nil
 			else				 
 				ret_str = nil
-			end
+			end 
 		elseif(intype == C.GE_HKDYNA) then
 			stk = ffi.cast("STK_HKDYNA *",data)
+			ret_str = nil
 		elseif(intype == C.GE_IOPV) then
 			iopv = ffi.cast("IOPV *",data)
 			dc_type = "iopv"

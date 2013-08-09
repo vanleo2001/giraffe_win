@@ -99,13 +99,12 @@ public:
     BOOL ExtractDataPack(const DC_HEAD* pOrgHead,DC_HEAD* pHeadBuf,int nBufSize,WORD* pwMarketBuf=NULL);
 	bool IsDCType(int dc_type);
 	bool IsDCHeader(unsigned char * dc_header);
-	void CombinePacket(unsigned char * pdch, int dc_len);
-	void HandlePacket(struct pcap_pkthdr *header, unsigned char *pkt_data, int port_tag);
-	//void DispatchToLua(lua_State *L, unsigned char * pdcdata, int dc_type, int stk_num, int stuct_size, int did_template_id=0);
+	void CombineDCPacket(unsigned char * pdch, int dc_len);
+	void HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int port_tag);
 	//void DispatchToLogThread(bufelement &info);
-	//void DispatchToMonitor(int stk_id, std::string &value);
 	//void DispatchToLuaRoutineThread(void * data, int size);
 	void DispatchData(zmq::socket_t * sock, void *data, size_t size);
+	void DownloadData(unsigned char * data, size_t len);
 	int nHqTotal;
     char*  extractbuf;
     STK_STATIC *pStkStatic;
