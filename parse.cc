@@ -161,7 +161,7 @@ void Parse::CombineDCPacket(unsigned char *pdch, int dc_len)
 			last_temp_len_ = 0;
 			while(temp_len >= packet_len && 0 != packet_len)
 			{
-				cout<<"case1:temp_len:"<<temp_len<<" packet_len:"<<packet_len<<endl;
+				//cout<<"case1:temp_len:"<<temp_len<<" packet_len:"<<packet_len<<endl;
 				if( DC_TAG == temp_dch_item->m_cTag && IsDCType(temp_dch_item->m_cType))
 				{
 					if(temp_len == packet_len)
@@ -218,7 +218,7 @@ void Parse::CombineDCPacket(unsigned char *pdch, int dc_len)
 	    if(0 != packet_len)
 		{
 			//case 2
-			cout<<"case2 templen:"<<temp_len<<" packet_len:"<<packet_len<<endl<<flush;
+			//cout<<"case2 templen:"<<temp_len<<" packet_len:"<<packet_len<<endl<<flush;
 			//过滤掉拼包还没完成，但是却收到一些其他包的情况。（比较少见！比如在拼dc_static过程中却收到dc_dsdata包）
 			/*if(0 != packet_len && last_pack_len_ > 0 && packet_len > temp_len && DC_TAG == temp_dch_item->m_cTag && IsDCType(temp_dch_item->m_cType))
 			{
@@ -415,7 +415,12 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
         }
         else if(DCT_SHL2_MMPEx == pdch->m_cType)
         {
+
         }
+		else if(DCT_SHL2_QUEUE)
+		{
+
+		}
 		else if(DCT_GENERAL == pdch->m_cType)
 		{
 			DC_GENERAL_MY * p = (DC_GENERAL_MY *)(pdch + 1);
@@ -775,7 +780,8 @@ void *Parse::RunThreadFunc()
 						{
 							if(tcp_expect_seq == 0 || tcp_expect_seq == tcp_current_seq)
 							{
-								cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+								//cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+								cout<<"tcp_data_len:"<<tcp_data_len<<endl;
 							 	CombineDCPacket((unsigned char *)pdch,tcp_data_len);
 							 	HandlePacket(header->ts,pkt_data,port_tag);
 								tcp_expect_seq = tcp_current_seq + tcp_data_len;
@@ -801,9 +807,11 @@ void *Parse::RunThreadFunc()
 						}
 						else//disorder
 						{
+							cout<<"disorder"<<endl;
 							if(tcp_expect_seq == tcp_current_seq)
 							{
-								cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+								//cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+								cout<<"tcp_data_len:"<<tcp_data_len<<endl;
 							 	CombineDCPacket((unsigned char *)pdch,tcp_data_len);
 							 	HandlePacket(header->ts,pkt_data,port_tag);
 								tcp_expect_seq = tcp_current_seq + tcp_data_len;
@@ -815,7 +823,7 @@ void *Parse::RunThreadFunc()
 									struct timeval timestamp = iter->timestamp;
 									if(tcp_expect_seq == tcp_current_seq)
 									{
-										cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+										//cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
 									 	CombineDCPacket(pkt_data+54,tcp_data_len);
 									 	HandlePacket(timestamp,pkt_data,port_tag);
 										tcp_expect_seq = tcp_current_seq + tcp_data_len;
@@ -840,6 +848,7 @@ void *Parse::RunThreadFunc()
 							}
 							else
 							{
+								cout<<"hello"<<endl;
 								unsigned char *pktdata = (unsigned char *)malloc(header->caplen);
 								assert(NULL != pktdata);
 								memcpy(pktdata, (unsigned char *)pkt_data, header->caplen);

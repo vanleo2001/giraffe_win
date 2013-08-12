@@ -36,11 +36,31 @@ end
 	return nil
  end
 
+ function handle_shl2_mmpex(stk)
+ 	if stk.avg_buy_price >= 0 then
+ 		error_type = Error_Type.system
+ 		error_level = Error_Level.error
+ 		error_info = "avg_buy_price > 0"
+ 		return FormatErrorString(error_type, error_level, error_info)
+ 	end
+ 	return nil
+ end
+
+ function handle_shl2_mmp(stk)
+ 	if stk.mmp>= 0 then
+ 		error_type = Error_Type.system
+ 		error_level = Error_Level.error
+ 		error_info = "queue element value >= 0"
+ 		return FormatErrorString(error_type, error_level, error_info)
+ 	end
+ 	return nil
+ end
+
  function handle_iopv(iopv)
-	if(iopv > 0.0) then
+	if(iopv >= 0.0) then
 		error_type = Error_Type.business
 		error_level = Error_Level.error
-		error_info = "iopv > 1000.0"
+		error_info = "iopv > 0.0"
 		return FormatErrorString(error_type, error_level, error_info)
 	end
 	return nil

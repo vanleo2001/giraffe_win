@@ -1,4 +1,5 @@
 #include "extract_dc.h"
+#include "l2compress.h"
 #include "generalcps.h"
 
 int ExtractDC::ExtractData(int dc_type, const unsigned char *pbufsrc, int bufsizesrc, unsigned char * pbufdes, int bufsizedes, STK_DYNA *pStkDyna, STK_STATIC *pStkStatic)
@@ -11,72 +12,72 @@ int ExtractDC::ExtractData(int dc_type, const unsigned char *pbufsrc, int bufsiz
 	switch(dc_type)
 	{
 	case DCT_STKSTATIC:
-		{
-				static_tag = false;
-			   /* cout<<"DCT_STKSTATIC"<<endl;*/
+	{
+		static_tag = false;
+	   /* cout<<"DCT_STKSTATIC"<<endl;*/
 
-				DC_STKSTATIC* pOrgStatic = (DC_STKSTATIC*)pbufsrc;
-				DC_STKSTATIC* pDestStatic = (DC_STKSTATIC*)pbufdes;
-				pDestStatic->m_dwVersion = pOrgStatic->m_dwVersion;
-				pDestStatic->m_wAttrib = pOrgStatic->m_wAttrib;
-				pDestStatic->m_nDay = pOrgStatic->m_nDay;
-	//			cout<<"dct static attrib:"<<pOrgStatic->m_wAttrib<<endl;
-	//			cout<<"dct static version:"<<pOrgStatic->m_dwVersion<<endl;
-	//			cout<<"dct static day:"<<pOrgStatic->m_nDay<<endl;
-				nExtraHeadLen = sizeof(DC_STKSTATIC) - sizeof(WORD);
-				nSize = (bufsizedes - nExtraHeadLen)/sizeof(STK_STATIC);
-				nNum = ExtractStaticData((BYTE*)&(pOrgStatic->m_nNum),bufsizesrc-nExtraHeadLen,pDestStatic->m_data,nSize);
-				
-				if(nNum>0)
-				{
-					nRet = sizeof(DC_STKSTATIC)+(nNum-1)*sizeof(STK_STATIC);
-					pDestStatic->m_nNum = nNum;
-				}
+		DC_STKSTATIC* pOrgStatic = (DC_STKSTATIC*)pbufsrc;
+		DC_STKSTATIC* pDestStatic = (DC_STKSTATIC*)pbufdes;
+		pDestStatic->m_dwVersion = pOrgStatic->m_dwVersion;
+		pDestStatic->m_wAttrib = pOrgStatic->m_wAttrib;
+		pDestStatic->m_nDay = pOrgStatic->m_nDay;
+//			cout<<"dct static attrib:"<<pOrgStatic->m_wAttrib<<endl;
+//			cout<<"dct static version:"<<pOrgStatic->m_dwVersion<<endl;
+//			cout<<"dct static day:"<<pOrgStatic->m_nDay<<endl;
+		nExtraHeadLen = sizeof(DC_STKSTATIC) - sizeof(WORD);
+		nSize = (bufsizedes - nExtraHeadLen)/sizeof(STK_STATIC);
+		nNum = ExtractStaticData((BYTE*)&(pOrgStatic->m_nNum),bufsizesrc-nExtraHeadLen,pDestStatic->m_data,nSize);
+		
+		if(nNum>0)
+		{
+			nRet = sizeof(DC_STKSTATIC)+(nNum-1)*sizeof(STK_STATIC);
+			pDestStatic->m_nNum = nNum;
 		}
 		break;
+	}
 	case DCT_STKDYNA:
-		{
-				DC_STKDYNA* pOrgDyna = (DC_STKDYNA*)pbufsrc;
-				DC_STKDYNA* pDestDyna = (DC_STKDYNA*)pbufdes;
+	{
+		DC_STKDYNA* pOrgDyna = (DC_STKDYNA*)pbufsrc;
+		DC_STKDYNA* pDestDyna = (DC_STKDYNA*)pbufdes;
 
-				if(static_before_dyna_tag)
-				{
-					/*cout<<"DCT_STKDYNA"<<endl;*/
-				
-					pDestDyna->m_wDynaSeq = pOrgDyna->m_wDynaSeq;
-					m_compressType_ = DYNA;
-					nExtraHeadLen = sizeof(WORD);
-					nSize = (bufsizedes - nExtraHeadLen)/sizeof(STK_DYNA);
-					nNum = ExtractDynaData((BYTE*)&pOrgDyna->m_nNum,bufsizesrc-nExtraHeadLen,pDestDyna->m_data,nSize,pStkDyna,pStkStatic);
-					static_tag = true;
-				}
-				else
-				{
-					nNum = 0;
-					nRet = 0;
-				}
-				if(nNum>0)
-				{
-					nRet = sizeof(DC_STKDYNA)+(nNum-1)*sizeof(STK_DYNA);
-					pDestDyna->m_nNum = nNum;
-				}
-				else if(nNum==-3)	//校验错误
-				{
-					nRet = -3;
-				}
+		if(static_before_dyna_tag)
+		{
+			/*cout<<"DCT_STKDYNA"<<endl;*/
+		
+			pDestDyna->m_wDynaSeq = pOrgDyna->m_wDynaSeq;
+			m_compressType_ = DYNA;
+			nExtraHeadLen = sizeof(WORD);
+			nSize = (bufsizedes - nExtraHeadLen)/sizeof(STK_DYNA);
+			nNum = ExtractDynaData((BYTE*)&pOrgDyna->m_nNum,bufsizesrc-nExtraHeadLen,pDestDyna->m_data,nSize,pStkDyna,pStkStatic);
+			static_tag = true;
+		}
+		else
+		{
+			nNum = 0;
+			nRet = 0;
+		}
+		if(nNum>0)
+		{
+			nRet = sizeof(DC_STKDYNA)+(nNum-1)*sizeof(STK_DYNA);
+			pDestDyna->m_nNum = nNum;
+		}
+		else if(nNum==-3)	//校验错误
+		{
+			nRet = -3;
 		}
 		break;
-	//case DCT_SHL2_MMPEx:
-	//	{
-	//		DC_SHL2_MMPEx* pMMPEx = (DC_SHL2_MMPEx*)pbufdes;
-	//		nSize = (bufsizedes-sizeof(DC_SHL2_MMPEx)+sizeof(pMMPEx->m_data))/sizeof(DC_SHL2_MMPEx);
-	//		if(ExpandL2MMPEx(pbufsrc,bufsizesrc,pMMPEx->m_data,nSize)>0)
-	//		{
-	//			pMMPEx->m_nNum = nSize;
-	//			nRet = sizeof(DC_SHL2_MMPEx) + (nSize-1)*sizeof(SH_L2_MMPEX);
-	//		}
-	//	}
-	//	break;
+	}
+	case DCT_SHL2_MMPEx:
+	{
+		DC_SHL2_MMPEx* pMMPEx = (DC_SHL2_MMPEx*)pbufdes;
+		nSize = (bufsizedes-sizeof(DC_SHL2_MMPEx)+sizeof(pMMPEx->m_data))/sizeof(DC_SHL2_MMPEx);
+		if(ExpandL2MMPEx(pbufsrc,bufsizesrc,pMMPEx->m_data,nSize)>0)
+		{
+			pMMPEx->m_nNum = nSize;
+			nRet = sizeof(DC_SHL2_MMPEx) + (nSize-1)*sizeof(SH_L2_MMPEX);
+		}
+		break;
+	}
 	//case DCT_SHL2_REPORT:
 	//	{
 //			DC_SHL2_REPORT* pL2Rep = (DC_SHL2_REPORT*)pbufdes;
@@ -91,14 +92,15 @@ int ExtractDC::ExtractData(int dc_type, const unsigned char *pbufsrc, int bufsiz
 //				nRet = 0;
 	//	}
 	//	break;
-	//case DCT_SHL2_QUEUE:
-	//case DCT_SZL2_ORDER_QUEUE:
-	//	{
-//			nSize = bufsizedes/sizeof(DWORD);
-//			if(ExpandL2Queue(pbufsrc,bufsizesrc,wMarket,(DWORD*)pbufdes,nSize,dc_type==DCT_SZL2_ORDER_QUEUE)>0)
-//				nRet = nSize*sizeof(DWORD);
-	//	}
-	//	break;
+	case DCT_SHL2_QUEUE:
+	case DCT_SZL2_ORDER_QUEUE:
+	{
+		nSize = bufsizedes/sizeof(DWORD);
+		if(ExpandL2Queue(pbufsrc,bufsizesrc,(DWORD*)pbufdes,nSize,dc_type==DCT_SZL2_ORDER_QUEUE)>0)
+			nRet = nSize*sizeof(DWORD);
+
+		break;
+	}
 	//case DCT_SHL2_BIG_WD:
 	//	{
 //			nSize = bufsizedes;
@@ -879,7 +881,7 @@ int ExtractDC::ExpandL2MMPEx(const BYTE* pData,int nDataLen,SH_L2_MMPEX* pMMPExB
 		int nNum = stream.Get(16);
 		if(nNum<=nBufSize)
 		{
-//			wMarket = (WORD)stream.Get(16);
+			unsigned short wMarket = (WORD)stream.Get(16);
 
 			memset(pMMPExBuf,0,sizeof(SH_L2_MMPEX)*nNum);
 

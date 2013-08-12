@@ -158,16 +158,15 @@ typedef struct SH_L2_MMPEX
 	unsigned int	sell_vol[SHL2_MMP_SIZE];		//Î¯ÂôÁ¿6-10
 }SH_L2_MMPEX;
 
+typedef struct SH_L2_MMP_Queue
+{
+	unsigned short mmp;
+}SH_L2_MMP_Queue;
+
 typedef struct DCS_STKSTATIC_Ex_MY
 {
 	short	m_nNum;
 }DC_STKSTATIC_Ex_MY;
-
-typedef struct DC_SHL2_MMPEx
-{
-	short	m_nNum;
-	SH_L2_MMPEX m_data[1];
-}DC_SHL2_MMPEx;
 
 
 typedef struct STK_STATICEx
@@ -312,6 +311,16 @@ function process(dctype,pdcdata)
 		dc_type = "dyna"
 		ret_str = FormatReturnError(dc_type,ret_error)
 		--outstr = string.format("[%d]:%d, last = %d, high = %d, low = %d\n",pdata.m_time,pdata.m_wStkID,pdata.m_dwNew,pdata.m_dwHigh,pdata.m_dwLow)
+	elseif dctype == C.DCT_SHL2_MMPEx then
+		stk = ffi.cast("SH_L2_MMPEX *", pdcdata)
+		ret_error = handle_shl2_mmpex(stk)
+		dc_type = "sh_l2_mmpex"
+		ret_str = FormatReturnError(dc_type, ret_error)
+	elseif dctype == C.DCT_SHL2_QUEUE then
+		stk = ffi.cast("SH_L2_MMP_Queue *", pdcdata)
+		ret_error = handle_shl2_mmp(stk)
+		dc_type = "sh_l2_mmp_queue"
+		ret_str = FormatReturnError(dc_type, ret_error)
 	else
 		ret_str =nil
     end
@@ -397,6 +406,7 @@ function process_general(intype,data)
 			ret_str = nil
 		elseif(intype == C.GE_IOPV) then
 			iopv = ffi.cast("IOPV *",data)
+			print("iopv")
 			dc_type = "iopv"
 			ret_error = handle_iopv(iopv.value)
 			ret_str = FormatReturnError(dc_type,ret_error) 

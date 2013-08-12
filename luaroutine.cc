@@ -96,7 +96,7 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 		}
 	}
 	//static or dyna
-	if (DCT_STKSTATIC == dc_type || DCT_STKDYNA == dc_type)
+	if (DCT_STKSTATIC == dc_type || DCT_STKDYNA == dc_type || DCT_SHL2_MMPEx == dc_type || DCT_SHL2_QUEUE == dc_type)
 	{
 		//working_lua
 		int countlua = 0;
@@ -119,7 +119,7 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 				int stkid = lua_tonumber(lua_state_, -2);
 				if(NULL != lua_ret)
 				{
-					//cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
+					cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
 					DispatchToMonitor(stkid, lua_ret);
 				}
 				lua_pop(lua_state_,-1);
@@ -132,6 +132,7 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 		unsigned char *pdata = pdcdata + stk_num *sizeof(WORD);
 		for(int i=0;i<stk_num;i++)
 		{
+			//cout<<"dc_general:stk_num:"<<i<<endl;
 			lua_getglobal(lua_state_,"process_general");
 			lua_pushinteger(lua_state_,dc_general_intype);
 			lua_pushlightuserdata(lua_state_,pdata + struct_size * i);
@@ -148,15 +149,17 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 				const char * lua_ret = lua_tostring(lua_state_,-1);
 				if(NULL != lua_ret)
 				{
-					//cout<<"general stkid:"<<*(pstk_id+i)<<" lua_ret:"<<lua_ret<<endl;
+					cout<<"general stkid:"<<*(pstk_id+i)<<" lua_ret:"<<lua_ret<<endl;
 					DispatchToMonitor(*(pstk_id+i),lua_ret);
 				}
 				lua_pop(lua_state_, -1);
 			}
 		}
+		//cout<<"end end end"<<endl;
 	}
 	free(pdcdata);
 	pdcdata = NULL;
+	//cout<<"free pdcdata"<<endl;
 }
 
 void * LuaRoutine::RunThreadFunc()
