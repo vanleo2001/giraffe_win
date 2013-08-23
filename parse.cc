@@ -1,8 +1,7 @@
 #include "parse.h"
 #include "extract_dc.h"
-#include "MonitorFileMap.h"
-#include "DidUncompress.h"
-#include "public.h"
+//#include "DidUncompress.h"
+//#include "public.h"
 #include "xml_class_set.h"
 #include "DIDTemplateToLuaStruct.h"
 #ifdef __linux
@@ -14,9 +13,26 @@
 #include <assert.h>
 #include <zlib.h>
 #include <set>
+#include "flags.h"
 
+static const int MAX_PACKET_LEN = 409600;
 
-const int MAX_PACKET_LEN = 409600;
+//int count_combine_pack = 0;
+//struct itimerval tick;	
+//
+//void PrintCountInfo(int signo)
+//{
+//	switch(signo)
+//	{
+//		case SIGALRM:
+//			cout<<"combine pack count:"<<count_combine_pack<<endl;
+//			count_combine_pack = 0;
+//			break;
+//		default:
+//			break;
+//	}
+//	return ;
+//}
 
 bool Parse::IsDCHeader(unsigned char * dc_header)
 {
@@ -93,6 +109,7 @@ bool Parse::IsDCType(int dc_type)
 
 void Parse::CombineDCPacket(unsigned char *pdch, int dc_len)
 {
+	//count_combine_pack += dc_len;
 	int temp_len = dc_len;
 	unsigned char *temp_pdch = (unsigned char *)pdch;
 	DC_HEAD *temp_dch_item = (DC_HEAD *)temp_pdch;
@@ -219,7 +236,7 @@ void Parse::CombineDCPacket(unsigned char *pdch, int dc_len)
 		{
 			//case 2
 			//cout<<"case2 templen:"<<temp_len<<" packet_len:"<<packet_len<<endl<<flush;
-			//¹ýÂËµôÆ´°ü»¹Ã»Íê³É£¬µ«ÊÇÈ´ÊÕµ½Ò»Ð©ÆäËû°üµÄÇé¿ö¡££¨±È½ÏÉÙ¼û£¡±ÈÈçÔÚÆ´dc_static¹ý³ÌÖÐÈ´ÊÕµ½dc_dsdata°ü£©
+			//Â¹Ã½Ã‚Ã‹ÂµÃ´Ã†Â´Â°Ã¼Â»Â¹ÃƒÂ»ÃÃªÂ³Ã‰Â£Â¬ÂµÂ«ÃŠÃ‡ÃˆÂ´ÃŠÃ•ÂµÂ½Ã’Â»ÃÂ©Ã†Ã¤Ã‹Ã»Â°Ã¼ÂµÃ„Ã‡Ã©Â¿Ã¶Â¡Â£Â£Â¨Â±ÃˆÂ½ÃÃ‰Ã™Â¼Ã»Â£Â¡Â±ÃˆÃˆÃ§Ã”ÃšÃ†Â´dc_staticÂ¹Ã½Â³ÃŒÃ–ÃÃˆÂ´ÃŠÃ•ÂµÂ½dc_dsdataÂ°Ã¼Â£Â©
 			/*if(0 != packet_len && last_pack_len_ > 0 && packet_len > temp_len && DC_TAG == temp_dch_item->m_cTag && IsDCType(temp_dch_item->m_cType))
 			{
 			temp_len = 0;
@@ -323,10 +340,10 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 
 	while(!combined_packet_deque_.empty())
 	{
-		DataBuffer data_buf;
+		//DataBuffer data_buf;
 		CombinedPacketItem &packet_item = combined_packet_deque_.front();
 		DC_HEAD * pdch = (DC_HEAD *)packet_item.data;
-		cout<<"dctype:"<<(int)(pdch->m_cType)<<endl;
+		//cout<<"dctype:"<<(int)(pdch->m_cType)<<endl;
 		if( DC_STD_CPS == (pdch->m_wAttrib & DC_CPS_MASK) || DC_ZLIB_CPS == (pdch->m_wAttrib &DC_CPS_MASK))
 		{
 			if(NULL == extractbuf)
@@ -340,7 +357,7 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 			}
 			else if(extract_ret == 0)
 			{
-				cout<<"the packet isn't extracted!"<<endl;
+				//cout<<"the packet isn't extracted!"<<endl;
 			}
 			else
 			{
@@ -415,11 +432,66 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
         }
         else if(DCT_SHL2_MMPEx == pdch->m_cType)
         {
-
+			DC_SHL2_MMPEx_MY *p= (DC_SHL2_MMPEx_MY *)(pdch+1);
+			pdcdata = (unsigned char *)(p+1);
+			stknum = p->m_nNum;
+			struct_size = sizeof(SH_L2_MMPEX);
+			SH_L2_MMPEX* pMMPEx = (SH_L2_MMPEX*)(p+1);
+			SH_L2_MMPEX* pData = NULL;
+			for (int i=0; i<p->m_nNum; i++)
+			{
+				if (((pMMPEx+i)->m_wStkID < nHqTotal) )
+				{
+					pData = pStkMMPEx + (pMMPEx+i)->m_wStkID;
+					memmove(pData, pMMPEx+i, struct_size);
+				}
+			}
         }
-		else if(DCT_SHL2_QUEUE)
+		else if(DCT_SHL2_QUEUE == pdch->m_cType)
 		{
-
+   //         DC_SHL2_QUEUE* p = (DC_SHL2_QUEUE*)(pdch+1);
+   //         BOOL bLog = FALSE;
+			//int nOrderCount = 0;
+			//int strLen = 0;
+			//std::string strOut;
+			//char buffer[10];
+			//memset(buffer, 0, 10);
+   //         for (int i=0; i< pdch->m_nLen/4;i++)
+   //         {
+   //             if ((p->m_dwQueue[i] & QUEUE_TYPE_MASK) == QUEUE_STOCKID)
+   //             {
+   //                 nOrderCount = 0;
+   //                 strLen = strOut.length();
+   //                 strOut.erase(0, strLen);
+   //                 if ((p->m_dwQueue[i]&(~QUEUE_STOCKID)) == 1) 
+   //                 {
+   //                     bLog = TRUE;
+   //                 }else
+   //                 {
+   //                     bLog = FALSE;
+   //                 }
+   //             }else if ((p->m_dwQueue[i] & QUEUE_TYPE_MASK) == QUEUE_BUYPRICE)
+   //             {
+   //                 nOrderCount = 0;
+   //                 strLen = strOut.length();
+   //                 strOut.erase(0, strLen);
+   //                 
+   //                 i++;
+   //                 
+   //             }else if ((p->m_dwQueue[i] & QUEUE_TYPE_MASK) == QUEUE_SELLPRICE)
+   //             {
+   //                 nOrderCount = 0;
+   //                 strLen = strOut.length();
+   //                 strOut.erase(0, strLen);
+   //                 i++;
+   //             }else
+   //             {
+   //                 nOrderCount++;
+   //                 memset(buffer, 0, 10);
+   //                 sprintf(buffer, " %d", p->m_dwQueue[i]);
+   //                 strOut += std::string(buffer);
+   //             }
+   //         }
 		}
 		else if(DCT_GENERAL == pdch->m_cType)
 		{
@@ -454,13 +526,27 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 					dc_general_intype = GE_MATU_YLD;
 				}
 			}
+			else if(GENERAL_STRING_FIX == p->m_dwDataAttr)
+			{
+
+			}
 			else if(GENERAL_STRING_VAR == p->m_dwDataAttr)
+			{
+				if(GE_HKREL_TXT == p->m_wDataID)
+				{
+					dc_general_intype = GE_HKREL_TXT;
+				}	
+			}
+			else if(GENERAL_FLOAT_VAR == p->m_dwDataAttr)
 			{
 
 			}
 			else if(GENERAL_VAR == p->m_dwDataAttr)
 			{
-
+				if(GE_BLK_STK == p->m_wDataID)
+				{
+					dc_general_intype = GE_BLK_STK;
+				}
 			}
 		}
 		else if(DCT_DSDATA == pdch->m_cType)
@@ -492,26 +578,26 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 		}
 		else if(DCT_DID == pdch->m_cType)
 		{
-			int port = listening_item_.get_port();
-			char temp_file[64];
-			sprintf(temp_file,"%d_did_config.xml",port);
-			std::string did_config_file(temp_file);
-			DidUncompress diducp(did_config_file);
-			diducp.ReadConfig();
-			diducp.Initialize();
-			if(diducp.DisassemblePack(pdch,data_buf))
-			{
-				cout<<"uncompress success!"<<endl;
-				DC_DIDHead *did_head = (DC_DIDHead *)(pdch+1);
-				did_template_id = did_head->GetDid();
-				stknum = did_head->GetRecNum();
-				struct_size = data_buf.GetLen()/stknum;
-				pdcdata = (unsigned char *)(data_buf.GetData());
-			}
-			else
-			{
-				cout<<"uncompress fail"<<endl;
-			}
+			//int port = listening_item_.get_port();
+			//char temp_file[64];
+			//sprintf(temp_file,"%d_did_config.xml",port);
+			//std::string did_config_file(temp_file);
+			//DidUncompress diducp(did_config_file);
+			//diducp.ReadConfig();
+			//diducp.Initialize();
+			//if(diducp.DisassemblePack(pdch,data_buf))
+			//{
+			//	cout<<"uncompress success!"<<endl;
+			//	DC_DIDHead *did_head = (DC_DIDHead *)(pdch+1);
+			//	did_template_id = did_head->GetDid();
+			//	stknum = did_head->GetRecNum();
+			//	struct_size = data_buf.GetLen()/stknum;
+			//	pdcdata = (unsigned char *)(data_buf.GetData());
+			//}
+			//else
+			//{
+			//	cout<<"uncompress fail"<<endl;
+			//}
 		}
 		else if(DCT_DIDSTATIC == pdch->m_cType)
 		{
@@ -522,6 +608,7 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 		{
 			Lua_ZMQ_MSG_Item msg_item;
 			msg_item.dc_type = pdch->m_cType;
+			msg_item.pack_len = pdch->m_nLen+10; 
 			msg_item.dc_general_intype = dc_general_intype;
 			msg_item.stk_num = stknum;
 			msg_item.struct_size = struct_size;
@@ -664,6 +751,8 @@ void Parse::Init()
 void Parse::InitZMQ()
 {
     sock_recv_ = new zmq::socket_t (*context_, this->zmqitems_[0].zmqpattern);
+
+    sock_recv_->setsockopt(ZMQ_RCVHWM,&ZMQ_RCVHWM_SIZE,sizeof(ZMQ_RCVHWM_SIZE));
     if("bind" == this->zmqitems_[0].zmqsocketaction)
     {
         sock_recv_->bind(this->zmqitems_[0].zmqsocketaddr.c_str());
@@ -672,9 +761,10 @@ void Parse::InitZMQ()
     {
         sock_recv_->connect(this->zmqitems_[0].zmqsocketaddr.c_str());
     }
-    sock_recv_->setsockopt(ZMQ_SUBSCRIBE,"",0);
+    //sock_recv_->setsockopt(ZMQ_SUBSCRIBE,"",0);
 
     sock_send_to_lua_routine_ = new zmq::socket_t (*context_, this->zmqitems_[1].zmqpattern);
+    //sock_send_to_lua_routine_->setsockopt(ZMQ_SNDHWM,&ZMQ_SNDHWM_SIZE,sizeof(ZMQ_SNDHWM_SIZE));
     if("bind" == this->zmqitems_[1].zmqsocketaction)
     {
         sock_send_to_lua_routine_->bind(this->zmqitems_[1].zmqsocketaddr.c_str());
@@ -706,19 +796,27 @@ void Parse::DownloadData(unsigned char * data, size_t len)
 	buf = NULL;
 }
 
-
-
 void *Parse::RunThreadFunc()
 {
 	pthread_detach(pthread_self());
 
+	//signal(SIGALRM, PrintCountInfo);
+	//tick.it_value.tv_sec = 10;
+	//tick.it_value.tv_usec = 0;
+
+	//tick.it_interval.tv_sec = 60;
+	//tick.it_interval.tv_usec = 0;
+
+	//setitimer(ITIMER_REAL,&tick,NULL);
+
     //zmq::pollitem_t items[] = {socket_parse_rcv, 0, ZMQ_POLLIN, 0};
  
-    pcap_work_item *pw_item_ptr;
+    PcapWorkItem *pw_item_ptr;
 	int port_tag;
 	//long long seqtag;
 	struct pcap_pkthdr *header = NULL;
 	unsigned char *pkt_data = NULL;
+	unsigned char *p_data = NULL;
     unsigned int countnum = 0;
     long int timebase = 0;
     int timetag = 0;
@@ -729,6 +827,7 @@ void *Parse::RunThreadFunc()
     long int timelive_parse = 0;
     int timetag_parse = 0;
 
+	int count_disorder = 0;
 	char * pfinalpacket = NULL;
 	int dc_len = 0;
 	ip_head *ih = NULL;
@@ -741,8 +840,8 @@ void *Parse::RunThreadFunc()
 	unsigned long tcp_data_len = 0 ;
 	int disorder_tag = 0;
 	set<TcpDisorderSetItem> tcp_disorder_set;
-
-	zmq::message_t msg_rcv(sizeof(pcap_work_item));
+	
+	zmq::message_t msg_rcv(sizeof(PcapWorkItem));
 	
     while(true)
     {
@@ -751,16 +850,16 @@ void *Parse::RunThreadFunc()
 		//{
             //if(items[0].revents & ZMQ_POLLIN)
             //{
-				memset((void*)(msg_rcv.data()),0,sizeof(pcap_work_item));
+				memset((void*)(msg_rcv.data()),0,sizeof(PcapWorkItem));
                 //socket_parse_rcv.recv(&msg_rcv,ZMQ_NOBLOCK);
 				bool ret = sock_recv_->recv(&msg_rcv);
 				assert(true == ret);
-                pw_item_ptr = static_cast<pcap_work_item*>(msg_rcv.data());
+                pw_item_ptr = static_cast<PcapWorkItem*>(msg_rcv.data());
 
 				port_tag = pw_item_ptr->port_tag;
 				//seqtag = pw_item_ptr->seqtag;
 				header = &(pw_item_ptr->header);
-				pkt_data = pw_item_ptr->data;
+				p_data = pkt_data = pw_item_ptr->data;
 					
 				ih = (ip_head *)(pkt_data + 14); //14 bytes is the length of ethernet header	
 				iph_len = (ih->ver_ihl & 0xf) * 4;//20bytes
@@ -775,13 +874,13 @@ void *Parse::RunThreadFunc()
 					tcp_current_seq = ntohl(tcph->seq);
 					if(tcp_data_len > 0)
 					{
-					 	DownloadData((unsigned char *)pdch, tcp_data_len);
+					 	//DownloadData((unsigned char *)pdch, tcp_data_len);
 						if(!disorder_tag)
 						{
 							if(tcp_expect_seq == 0 || tcp_expect_seq == tcp_current_seq)
 							{
 								//cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
-								cout<<"tcp_data_len:"<<tcp_data_len<<endl;
+								//cout<<"tcp_data_len:"<<tcp_data_len<<endl;
 							 	CombineDCPacket((unsigned char *)pdch,tcp_data_len);
 							 	HandlePacket(header->ts,pkt_data,port_tag);
 								tcp_expect_seq = tcp_current_seq + tcp_data_len;
@@ -793,6 +892,8 @@ void *Parse::RunThreadFunc()
 							}
 							else
 							{
+								count_disorder++;
+								cout<<"disorder! NO:"<<count_disorder<<" current_seq:"<<tcp_current_seq<<endl;
 								disorder_tag = 1;
 								unsigned char *pktdata = (unsigned char *)malloc(header->caplen);
 								assert(NULL != pktdata);
@@ -807,15 +908,17 @@ void *Parse::RunThreadFunc()
 						}
 						else//disorder
 						{
-							cout<<"disorder"<<endl;
+							count_disorder++;
+							cout<<"disorder! NO:"<<count_disorder<<" current_seq:"<<tcp_current_seq<<endl;
 							if(tcp_expect_seq == tcp_current_seq)
 							{
 								//cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
-								cout<<"tcp_data_len:"<<tcp_data_len<<endl;
+								//cout<<"tcp_data_len:"<<tcp_data_len<<endl;
 							 	CombineDCPacket((unsigned char *)pdch,tcp_data_len);
 							 	HandlePacket(header->ts,pkt_data,port_tag);
 								tcp_expect_seq = tcp_current_seq + tcp_data_len;
-								for(set<TcpDisorderSetItem>::iterator iter=tcp_disorder_set.begin();iter != tcp_disorder_set.end();iter++)
+								set<TcpDisorderSetItem>::iterator iter;	
+								for(iter=tcp_disorder_set.begin();iter != tcp_disorder_set.end();)
 								{
 									tcp_current_seq = iter->tcp_seq;
 									tcp_data_len = iter->tcp_data_len;
@@ -829,7 +932,7 @@ void *Parse::RunThreadFunc()
 										tcp_expect_seq = tcp_current_seq + tcp_data_len;
 										free(pkt_data);
 										pkt_data = NULL;
-										tcp_disorder_set.erase(iter);
+										tcp_disorder_set.erase(iter++);
 									}
 									else
 									{
@@ -840,6 +943,8 @@ void *Parse::RunThreadFunc()
 								if(tcp_disorder_set.empty())
 								{
 									disorder_tag = 0;
+									count_disorder = 0;
+									cout<<"fixed disorder!"<<endl;
 								}
 							}
 							else if(tcp_expect_seq > tcp_current_seq)
@@ -848,7 +953,6 @@ void *Parse::RunThreadFunc()
 							}
 							else
 							{
-								cout<<"hello"<<endl;
 								unsigned char *pktdata = (unsigned char *)malloc(header->caplen);
 								assert(NULL != pktdata);
 								memcpy(pktdata, (unsigned char *)pkt_data, header->caplen);
@@ -892,6 +996,11 @@ void *Parse::RunThreadFunc()
   //          cout<<"zmq poll fail"<<endl;
 		//	throw zmq_errno();
 		//}
+		if (NULL != p_data)
+		{
+			delete [] p_data;
+			p_data = NULL;
+		}
     }
 }
 

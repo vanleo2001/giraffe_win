@@ -158,10 +158,10 @@ typedef struct SH_L2_MMPEX
 	unsigned int	sell_vol[SHL2_MMP_SIZE];		//Î¯ÂôÁ¿6-10
 }SH_L2_MMPEX;
 
-typedef struct SH_L2_MMP_Queue
+typedef struct SH_L2_Queue
 {
 	unsigned short mmp;
-}SH_L2_MMP_Queue;
+}SH_L2_Queue;
 
 typedef struct DCS_STKSTATIC_Ex_MY
 {
@@ -316,11 +316,6 @@ function process(dctype,pdcdata)
 		ret_error = handle_shl2_mmpex(stk)
 		dc_type = "sh_l2_mmpex"
 		ret_str = FormatReturnError(dc_type, ret_error)
-	elseif dctype == C.DCT_SHL2_QUEUE then
-		stk = ffi.cast("SH_L2_MMP_Queue *", pdcdata)
-		ret_error = handle_shl2_mmp(stk)
-		dc_type = "sh_l2_mmp_queue"
-		ret_str = FormatReturnError(dc_type, ret_error)
 	else
 		ret_str =nil
     end
@@ -416,3 +411,13 @@ function process_general(intype,data)
 		return ret_str 
 end
 
+function process_shl2_queue(dctype, pdcdata)
+	local stk
+	if dctype == C.DCT_SHL2_QUEUE then
+		stk = ffi.cast("SH_L2_Queue *", pdcdata)
+		ret_error = handle_shl2_mmp(stk)
+		dc_type = "sh_l2_queue"
+		ret_str = FormatReturnError(dc_type, ret_error)
+	end
+	return ret_str
+end

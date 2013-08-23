@@ -1,6 +1,12 @@
 #include "DIDTemplateToLuaStruct.h"
 #include "xml_class_set.h"
+#include "xml2cfg.h"
+#ifndef __linux
 #include <io.h>
+#else 
+#include <sys/io.h>
+#endif
+
 #include <iostream>
 
 using namespace std;

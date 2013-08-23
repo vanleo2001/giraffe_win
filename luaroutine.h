@@ -3,7 +3,7 @@
 #include <zmq.hpp>
 #include "basethread.h"
 #include "xml_class_set.h"
-#include "MonitorFileMap.h"
+//#include "MonitorFileMap.h"
 #include "datacolect.h"
 
 #ifdef __linux
@@ -21,7 +21,7 @@ public:
 		lua_state_ = NULL;
 		sock_ = NULL;
 		stk_static_ = NULL;
-		monitor_mapping_file_ = new MonitorFileMap("FX_191111.dat",MonitorFileMap::BUILD);
+		//monitor_mapping_file_ = new MonitorFileMap("FX_191111.dat",MonitorFileMap::BUILD);
 	}
 	~LuaRoutine()
 	{
@@ -35,11 +35,11 @@ public:
 			delete sock_;
 			sock_ = NULL;
 		}
-		if(NULL != monitor_mapping_file_)
-		{
-			delete monitor_mapping_file_;
-			monitor_mapping_file_ = NULL;
-		}
+		//if(NULL != monitor_mapping_file_)
+		//{
+		//	delete monitor_mapping_file_;
+		//	monitor_mapping_file_ = NULL;
+		//}
 	}
 	void Init();
 	void* RunThreadFunc();
@@ -47,14 +47,15 @@ protected:
 private:
 	void InitLua();
 	void InitZMQ();
+	//Lua_ZMQ_MSG_Item Test();
 	void DispatchToLua(unsigned char * pdcdata, int dc_type, int dc_general_intype,int stk_num, int struct_size, int did_template_id);
-	void DispatchToMonitor(int stk_id, const char * value);
+	//void DispatchToMonitor(int stk_id, const char * value);
 	struct STK_STATIC* GetStkByID(const int stk_id);
 	zmq::context_t *context_;
 	zmq::socket_t *sock_;
 	XML_ListeningItem listening_item_;
 	lua_State * lua_state_;
-	MonitorFileMap * monitor_mapping_file_;
+	//MonitorFileMap * monitor_mapping_file_;
 	STK_STATIC* stk_static_;
 };
 

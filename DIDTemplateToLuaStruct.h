@@ -4,7 +4,7 @@
 #include <map>
 #include <iostream>
 #include "xml_class_set.h"
-#include "xml2cfg.h"
+
 using namespace std;
 
 class DIDTemplateToLuaStruct

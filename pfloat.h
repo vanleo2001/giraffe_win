@@ -49,7 +49,7 @@ typedef unsigned char BYTE;
 #ifndef COMPRESS_API
 #ifdef DLL_FILE
 #define COMPRESS_API _declspec(dllexport)
-#elif _LINUX_VERSION
+#elif __linux
 #define  COMPRESS_API
 #else
 #define COMPRESS_API _declspec(dllimport)

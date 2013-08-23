@@ -75,9 +75,13 @@ void ConfigParser::Parse()
 			config.get_prop_string(thread_node,"threadclass",threadclass,NULL);
 			cout<<threadclass<<endl;
 			deque<XML_ZMQ> *zmqdeque;
-			if("Capture" == threadclass)
+			if("CaptureNetPacket" == threadclass)
 			{
-				zmqdeque = listening_item.get_cap()->get_zmqdeque();
+				zmqdeque = listening_item.get_capture_net_packet()->get_zmqdeque();
+			}
+			else if("HandleNetPacket" == threadclass)
+			{
+				zmqdeque = listening_item.get_handle_net_packet()->get_zmqdeque();
 			}
 			else if("Parse" == threadclass)
 			{

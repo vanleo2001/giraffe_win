@@ -8,7 +8,7 @@ int ExtractDC::ExtractData(int dc_type, const unsigned char *pbufsrc, int bufsiz
 	int nNum = 0;
 	int nExtraHeadLen = 0;
 	int nSize;
-	cout<<"dc_type:::::"<<dc_type<<endl;
+	//cout<<"dc_type:::::"<<dc_type<<endl;
 	switch(dc_type)
 	{
 	case DCT_STKSTATIC:

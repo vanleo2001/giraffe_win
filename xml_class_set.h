@@ -70,6 +70,33 @@ private:
 	deque<XML_ZMQ> zmqdeque_;
 };
 
+class XML_CaptureNetPacket
+{
+public:
+	XML_CaptureNetPacket(){};
+	~XML_CaptureNetPacket(){};
+	inline deque<XML_ZMQ> * get_zmqdeque()
+	{
+		return &zmqdeque_;
+	}
+private:
+	deque<XML_ZMQ> zmqdeque_;
+};
+
+class XML_HandleNetPacket
+{
+public:
+	XML_HandleNetPacket(){};
+	~XML_HandleNetPacket(){};
+	inline deque<XML_ZMQ> * get_zmqdeque()
+	{
+		return &zmqdeque_;
+	}
+private:
+	deque<XML_ZMQ> zmqdeque_;
+
+};
+
 class XML_Parse
 {
 public:
@@ -165,9 +192,13 @@ public:
 	{
 		return filter_;
 	}
-	inline XML_Capture *get_cap()
+	inline XML_CaptureNetPacket *get_capture_net_packet()
 	{
-		return &cap_;
+		return &capture_net_packet_;
+	}
+	inline XML_HandleNetPacket *get_handle_net_packet()
+	{
+		return &handle_net_packet_;
 	}
 	inline XML_Parse *get_parse()
 	{
@@ -185,7 +216,7 @@ public:
 	{
 		did_templates_paths_.push_back(did_template_path);
 	}
-	inline void insert_did_filepath_map(std::pair<int, std::string>& element)
+	inline void insert_did_filepath_map(std::pair<int, std::string> element)
 	{
 		did_filepath_map_.insert(element);
 	}
@@ -208,6 +239,8 @@ private:
 	XML_Capture cap_;
 	XML_Parse parse_;
 	XML_Lua_Routine lua_routine_;
+	XML_CaptureNetPacket capture_net_packet_;
+	XML_HandleNetPacket handle_net_packet_;
 	vector<std::string> did_templates_paths_;
 	vector<std::string> did_templates_ids_;
 	map<int,std::string> did_filepath_map_;

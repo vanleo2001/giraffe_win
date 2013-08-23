@@ -1,57 +1,37 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <listening>
-
   <log>
     <zmqs>
       <zmq zmqpattern="PULL" zmqsocketaction="bind" zmqsocketaddr="inproc://log"></zmq>
     </zmqs>
   </log>
 
-  <listeningitem port="9268" filter="tcp and port 9268">
+  <listeningitem port="22224" filter="tcp and port 22224">
     <did_templates>
-      <did_template id ="1" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100000.xml"></did_template>
-      <did_template id ="2" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100001.xml"></did_template>
-      <did_template id ="3" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100002.xml"></did_template>
-      <did_template id ="4" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100012.xml"></did_template>
-	    <did_template id ="5" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100030.xml"></did_template>
-      <did_template id ="6" did_template_path="C:\Users\Yison\Desktop\work\wdc-new\did\asclient\100032.xml"></did_template>
     </did_templates>
-    <thread threadclass="Capture">
+    <thread threadclass="CaptureNetPacket">
       <zmqs>
-        <zmq zmqpattern="PUB" zmqsocketaction="bind" zmqsocketaddr="inproc://9268cap_to_parse" ></zmq>
+        <zmq zmqpattern="PAIR" zmqsocketaction="bind" zmqsocketaddr="inproc://22224cap_to_handle_net_packet" ></zmq>
+      </zmqs>
+    </thread>
+    <thread threadclass="HandleNetPacket">
+      <zmqs>
+        <zmq zmqpattern="PAIR" zmqsocketaction="connect" zmqsocketaddr="inproc://22224cap_to_handle_net_packet"></zmq>
+        <zmq zmqpattern="PAIR" zmqsocketaction="bind" zmqsocketaddr="inproc://22224handle_net_packet_to_parse"></zmq>
       </zmqs>
     </thread>
     <thread threadclass="LuaRoutine">
       <zmqs>
-        <zmq zmqpattern="PAIR" zmqsocketaction="bind" zmqsocketaddr="inproc://9268parse_to_lua"></zmq>
+        <zmq zmqpattern="PAIR" zmqsocketaction="bind" zmqsocketaddr="inproc://22224parse_to_lua"></zmq>
       </zmqs>
     </thread>
     <thread threadclass="Parse">
       <zmqs>
-        <zmq zmqpattern="SUB" zmqsocketaction="connect" zmqsocketaddr="inproc://9268cap_to_parse"></zmq>
-        <zmq zmqpattern="PAIR" zmqsocketaction="connect" zmqsocketaddr="inproc://9268parse_to_lua"></zmq>
+        <zmq zmqpattern="PAIR" zmqsocketaction="connect" zmqsocketaddr="inproc://22224handle_net_packet_to_parse"></zmq>
+        <zmq zmqpattern="PAIR" zmqsocketaction="connect" zmqsocketaddr="inproc://22224parse_to_lua"></zmq>
         <zmq zmqpattern="PUSH" zmqsocketaction="connect" zmqsocketaddr="inproc://log"></zmq>
       </zmqs>
     </thread>
   </listeningitem>
  
-  <listeningitem port="18967" filter="tcp and port 18967">
-    <thread threadclass="Capture">
-      <zmqs>
-        <zmq zmqpattern="PUB" zmqsocketaction="bind" zmqsocketaddr="inproc://18967cap_to_parse" ></zmq>
-      </zmqs>
-    </thread>
-    <thread threadclass="LuaRoutine">
-      <zmqs>
-        <zmq zmqpattern="PAIR" zmqsocketaction="bind" zmqsocketaddr="inproc://18967parse_to_lua"></zmq>
-      </zmqs>
-    </thread>
-    <thread threadclass="Parse">
-      <zmqs>
-        <zmq zmqpattern="SUB" zmqsocketaction="connect" zmqsocketaddr="inproc://18967cap_to_parse"></zmq>
-        <zmq zmqpattern="PAIR" zmqsocketaction="connect" zmqsocketaddr="inproc://18967parse_to_lua"></zmq>
-        <zmq zmqpattern="PUSH" zmqsocketaction="connect" zmqsocketaddr="inproc://log"></zmq>
-      </zmqs>
-    </thread>
-  </listeningitem>
 </listening>

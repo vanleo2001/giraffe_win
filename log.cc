@@ -1,4 +1,5 @@
 #include "log.h"
+#include "flags.h"
 
 map<int,log4cpp::Category*> logmapping;
 
@@ -38,6 +39,7 @@ void * Log::RunThreadFunc()
     map<int, log4cpp::Category *>::iterator it;
 
     zmq::socket_t socket_log (*context, this->zmqitems_[0].zmqpattern);
+    socket_log.setsockopt(ZMQ_RCVHWM, &ZMQ_RCVHWM_SIZE, sizeof(ZMQ_RCVHWM_SIZE));
     //cout<<"log:pattern:"<<this->zmqitems_[0].zmqpattern<<endl;
     //cout<<"log:socketaction:"<<this->zmqitems_[0].zmqsocketaction<<endl;
     //cout<<"log:socketaddr:"<<this->zmqitems_[0].zmqsocketaddr<<endl;

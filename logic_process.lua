@@ -27,10 +27,10 @@ function handle_stk_dyna(stk)
 end
 
  function handle_stk_static(stk)
-	if stk.last_close >= 0 then
+	if stk.last_close < 0 then
 		error_type = Error_Type.system
 		error_level = Error_Level.error
-		error_info = "last close > 0"
+		error_info = "last close < 0"
 		return FormatErrorString(error_type, error_level, error_info)
 	end
 	return nil

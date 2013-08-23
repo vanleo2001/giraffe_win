@@ -18,6 +18,7 @@ public:
 	//tid =pthread_self();
 	//Utils::Print_Thread_ID(tid);
 	static void Print_Thread_ID(pthread_t tid);
+	static void SleepUsec(const int usec);
 };
 
 #endif // MONITOR_UTILS_H_

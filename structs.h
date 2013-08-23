@@ -142,13 +142,21 @@ typedef struct bufelement
     unsigned long seqtag;
 }bufelement;
 
-typedef struct pcap_work_item
+typedef struct PcapWorkItem
 {
     int port_tag;
     long long seqtag;
     struct pcap_pkthdr header;
-    unsigned char data[PCAPTOPARSE_BUF_SIZE];
-}pcap_work_item;
+    unsigned char *data;
+}PcapWorkItem;
+
+
+typedef struct CapNetPacketItem 
+{
+	struct pcap_pkthdr header;
+	//unsigned char data[PCAPTOPARSE_BUF_SIZE];
+	unsigned char *data;
+}CapNetPacketItem;
 
 typedef struct Lua_ZMQ_MSG_Item
 {
@@ -157,6 +165,7 @@ typedef struct Lua_ZMQ_MSG_Item
 	int stk_num;
 	int struct_size;
 	int did_template_id;
+	unsigned long pack_len;
 	struct STK_STATIC * stk_static;
 	unsigned char *pdcdata;
 }Lua_ZMQ_MSG_Item;
@@ -229,3 +238,4 @@ typedef struct DidStruct
 #pragma pack(pop)
 
 #endif // MONITOR_PROTOCOL_H_
+

@@ -1,6 +1,31 @@
 #include "luaroutine.h"
+#include "flags.h"
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#include <csignal>
+
+using namespace std;
 
 const char load_file[] = "process.lua";
+
+unsigned long count_pack = 0;
+struct itimerval tick;  
+
+void PrintCountInfo(int signo)
+{
+    switch(signo)
+    {
+        case SIGALRM:
+            cout<<"pack count:"<<count_pack<<endl;
+            count_pack= 0;
+            break;
+        default:
+            break;
+    }
+    return ;
+}
+
 
 void LuaRoutine::Init()
 {
@@ -38,6 +63,7 @@ void LuaRoutine::InitZMQ()
 {
 	assert(-1 != this->zmqitems_[0].zmqpattern);
 	sock_ = new zmq::socket_t(*context_,this->zmqitems_[0].zmqpattern);
+	sock_->setsockopt(ZMQ_RCVHWM, &ZMQ_RCVHWM_SIZE, sizeof(ZMQ_RCVHWM_SIZE));
     if("bind" == this->zmqitems_[0].zmqsocketaction)
     {
         sock_->bind(this->zmqitems_[0].zmqsocketaddr.c_str());
@@ -54,20 +80,20 @@ struct STK_STATIC * LuaRoutine::GetStkByID(int stk_id)
 	return stk_static_ + stk_id;	
 }
 
-void LuaRoutine::DispatchToMonitor(int stk_id, const char *value)
-{
-	assert(NULL != value);
-	STK_STATIC * pstkstaticitem = GetStkByID(stk_id);
-	MonitorMsg *monitor_msg  = (MonitorMsg *)(monitor_mapping_file_->GetMapMsg());
-	time_t t;
-	t = time(&t);
-	dzh_time_t current_time(t);
-	monitor_msg->time = current_time;
-	strcpy(monitor_msg->error_type,"BUSINESS");
-	strcpy(monitor_msg->error_level,"WARNING");
-	strcpy(monitor_msg->stock_label, pstkstaticitem->m_strLabel);
-	strcpy(monitor_msg->error_info, value);
-}
+//void LuaRoutine::DispatchToMonitor(int stk_id, const char *value)
+//{
+//	assert(NULL != value);
+//	STK_STATIC * pstkstaticitem = GetStkByID(stk_id);
+//	MonitorMsg *monitor_msg  = (MonitorMsg *)(monitor_mapping_file_->GetMapMsg());
+//	time_t t;
+//	t = time(&t);
+//	dzh_time_t current_time(t);
+//	monitor_msg->time = current_time;
+//	strcpy(monitor_msg->error_type,"BUSINESS");
+//	strcpy(monitor_msg->error_level,"WARNING");
+//	strcpy(monitor_msg->stock_label, pstkstaticitem->m_strLabel);
+//	strcpy(monitor_msg->error_info, value);
+//}
 
 void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_general_intype, int stk_num, int struct_size, int did_template_id)
 {
@@ -77,12 +103,14 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 	{
 		for(int i=0;i<stk_num;i++)
 		{
+			count_pack += 1;
+			//count_pack += stk_num*struct_size;
 			//cout<<i<<endl;
 			lua_getglobal(lua_state_,"process_did");
 			lua_pushinteger(lua_state_,listening_item_.get_port());
 			lua_pushinteger(lua_state_, did_template_id);
 			lua_pushlightuserdata(lua_state_, pdcdata+i*struct_size);
-			if(lua_pcall(lua_state_,3,1,0) != 0)
+			if(lua_pcall(lua_state_,3,0,0) != 0)
 			{
 				//cout<<lua_tostring(lua_state_,-1)<<endl;
 				lua_pop(lua_state_,-1);
@@ -96,17 +124,19 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 		}
 	}
 	//static or dyna
-	if (DCT_STKSTATIC == dc_type || DCT_STKDYNA == dc_type || DCT_SHL2_MMPEx == dc_type || DCT_SHL2_QUEUE == dc_type)
+	else if (DCT_STKSTATIC == dc_type || DCT_STKDYNA == dc_type || DCT_SHL2_MMPEx == dc_type )
 	{
 		//working_lua
 		int countlua = 0;
 		for(int i=0;i<stk_num;i++)
 		{
+			count_pack += 1;
+			//count_pack += stk_num*struct_size;
 			lua_getglobal(lua_state_,"process");
 			lua_pushinteger(lua_state_, dc_type);
 			lua_pushlightuserdata(lua_state_,pdcdata+struct_size * i);
 			//Sleep(50);
-			if(lua_pcall(lua_state_,2,2,0) != 0)
+			if(lua_pcall(lua_state_,2,0,0) != 0)
 			{
 				string s = lua_tostring(lua_state_,-1);
 				std::cout<<s<<endl;
@@ -115,23 +145,26 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 			}
 			else
 			{
-				const char * lua_ret = lua_tostring(lua_state_,-1);
-				int stkid = lua_tonumber(lua_state_, -2);
-				if(NULL != lua_ret)
-				{
-					cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
-					DispatchToMonitor(stkid, lua_ret);
-				}
+				//const char * lua_ret = lua_tostring(lua_state_,-1);
+				//int stkid = lua_tonumber(lua_state_, -2);
+				//if(NULL != lua_ret)
+				//{
+				//	//cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
+				//	//DispatchToMonitor(stkid, lua_ret);
+				//}
 				lua_pop(lua_state_,-1);
 			}
 		}
 	}
-	if(DCT_GENERAL == dc_type)
+	else if(DCT_GENERAL == dc_type)
 	{
 		unsigned short *pstk_id = (unsigned short *)pdcdata;
 		unsigned char *pdata = pdcdata + stk_num *sizeof(WORD);
+		//count_pack += stk_num*2;
 		for(int i=0;i<stk_num;i++)
 		{
+			count_pack += 1;
+			//count_pack += stk_num*struct_size;
 			//cout<<"dc_general:stk_num:"<<i<<endl;
 			lua_getglobal(lua_state_,"process_general");
 			lua_pushinteger(lua_state_,dc_general_intype);
@@ -146,24 +179,60 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 			}
 			else
 			{
-				const char * lua_ret = lua_tostring(lua_state_,-1);
-				if(NULL != lua_ret)
-				{
-					cout<<"general stkid:"<<*(pstk_id+i)<<" lua_ret:"<<lua_ret<<endl;
-					DispatchToMonitor(*(pstk_id+i),lua_ret);
-				}
+				//const char * lua_ret = lua_tostring(lua_state_,-1);
+				//if(NULL != lua_ret)
+				//{
+				//	cout<<"general stkid:"<<*(pstk_id+i)<<" lua_ret:"<<lua_ret<<endl;
+				//	//DispatchToMonitor(*(pstk_id+i),lua_ret);
+				//}
 				lua_pop(lua_state_, -1);
 			}
 		}
 		//cout<<"end end end"<<endl;
+	}
+	else if (DCT_SHL2_QUEUE)
+	{
+		/* code */
+	}
+	else
+	{
+			
+		//count_pack += stk_num*struct_size;
 	}
 	free(pdcdata);
 	pdcdata = NULL;
 	//cout<<"free pdcdata"<<endl;
 }
 
+
 void * LuaRoutine::RunThreadFunc()
 {
+	unsigned char * pdata = (unsigned char *)malloc(2000*sizeof(struct STK_STATIC));
+	struct STK_STATIC stk_static;
+	stk_static.m_wStkID = 1;
+	memset(stk_static.m_strLabel, 0, sizeof(stk_static.m_strLabel));
+	memcpy(stk_static.m_strlable, "fdafsdf",5);
+	memset(stk_static.m_strName, 0, sizeof(stk_static.m_strName));
+	memcpy(stk_static.m_strName,"hhhhh",3);
+	stk_static.m_cType = DC_TYPE::DCT_STKSTATIC;
+	stk_static.m_nPriceDigit = '1';
+	stk_static.m_nVolUnit = 321;
+	stk_static.m_mFloatIssued = 134;
+	stk_static.m_mTotalIssued = 321;
+	stk_static.m_dwLastClose = 4324;
+	stk_static.m_dwAdvStop = 432;
+	stk_static.m_dwDecStop = 23423;
+
+	
+    signal(SIGALRM, PrintCountInfo);
+    tick.it_value.tv_sec = 10;
+    tick.it_value.tv_usec = 0;
+
+    tick.it_interval.tv_sec = 60;
+    tick.it_interval.tv_usec = 0;
+
+    setitimer(ITIMER_REAL,&tick,NULL);
+
 	zmq::message_t msg_rcv(sizeof(Lua_ZMQ_MSG_Item));
 	while(true)
 	{

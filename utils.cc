@@ -1,5 +1,9 @@
 #include "utils.h"
 #include "datacolect.h"
+#include <sys/select.h>
+#include <sys/time.h>
+#include <sys/types.h>
+#include <unistd.h>
 
 /*get flag name based on the flag number*/
 char* Utils::tcp_flag_to_str( unsigned char flag )
@@ -141,11 +145,11 @@ char *Utils::DCGeneral_IntypeToString(int dc_general_intype)
 	case GE_STATIC_EX:
 		return "GE_STATIC_EX";
 	case GE_HKDYNA:
-		return "	GE_HKDYNA";
+		return "GE_HKDYNA";
 	case GE_BLK_STK:
-		return "	GE_BLK_STK";
+		return "GE_BLK_STK";
 	case GE_IOPV:
-		return "	GE_IOPV";
+		return "GE_IOPV";
 	case GE_MATU_YLD:
 		return "GE_MATU_YLD";
 	case GE_HKREL_TXT:
@@ -178,4 +182,10 @@ void Utils::WriteIntoFile(const char *file_name, const char *mode, const void* d
 	}
 }
 
-
+void Utils::SleepUsec(const int usec)
+{
+	struct timeval tval;
+	tval.tv_sec = 0;
+	tval.tv_usec = usec;
+	select(0,NULL,NULL,NULL,&tval);
+}

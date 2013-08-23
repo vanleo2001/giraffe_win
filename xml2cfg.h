@@ -3,11 +3,13 @@
 #include <string>
 #include <map>
 #include <vector>
-
+#include <cstring>
 #include <libxml/tree.h>
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
+
+using namespace std;
 
 class xml2cfg
 {

@@ -27,7 +27,7 @@ typedef unsigned int  UINT32;
 #endif
 #endif
 
-#ifdef _LINUX_VERSION
+#ifdef __linux 
 #define MAX_DZH_TIME_SECOND     17592186044415ll  //大智慧时间的最大值
 #define INVALID_DZH_TIME        0xFFFFFFFFFFFFFFFFll  //无效的大智慧时间
 #else
@@ -130,7 +130,7 @@ struct TDzhTimeNumStruct
 
 #ifdef DLL_FILE
 class _declspec(dllexport) dzh_time_t //导出类
-#elif _LINUX_VERSION
+#elif __linux 
 class dzh_time_t
 #else
 class _declspec(dllimport) dzh_time_t

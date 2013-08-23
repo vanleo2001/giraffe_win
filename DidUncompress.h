@@ -2,7 +2,11 @@
 #include "dscomapi.h"
 #include "MSXML_DOMDocument.h"
 #include <map>
+#ifndef __linux
 #include <hash_map>
+#else
+#include <ext/hash_map>
+#endif
 
 using namespace std;
 

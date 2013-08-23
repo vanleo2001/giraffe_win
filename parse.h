@@ -3,7 +3,9 @@
 
 #ifdef __linux
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <netinet/in.h>
+#include <unistd.h>
 #else
 #include "winsock2.h"
 #endif
@@ -26,8 +28,10 @@
 #include "basethread.h"
 #include "extract_dc.h"
 #include "dzh_time_t.h"
-#include "MonitorFileMap.h"
 #include "xml_class_set.h"
+#include <csignal>
+
+
 using namespace std;
 
 #define EXTRACT_BUF (2*1024*2014)
@@ -131,7 +135,6 @@ private:
 	int dc_header_last_inner_len_;
 	unsigned long last_tcp_seq_;
 	unsigned char recombined_header_buf_[PCAPTOPARSE_BUF_SIZE];
-	
 };
 
 
