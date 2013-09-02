@@ -376,6 +376,32 @@ struct SH_L2_ACCU_WD
 };
 
 //委托单统计，用于深圳Level2
+struct SZL2_ORDER_FIVE
+{
+	WORD   nIndex;
+	char strOrderKind;
+	char strFunCode;
+	DWORD dwPrice;
+	DWORD dwAmount;
+	DWORD dwRecNO;
+	int   nSetNO;
+	DWORD   nRecTime;
+};
+
+/////////////////////////////////////////
+struct SZL2_TRADE_FIVE
+{
+	WORD   nIndex;
+	char strOrderKind;
+	char strFunCode;
+	DWORD dwBuyOrderRecNo;
+	DWORD dwSellOrderRecNo;
+	DWORD dwPrice;
+	DWORD dwAmount;
+	DWORD dwTradeNO;
+	int   nSetNO;
+	DWORD   nRecTime;
+};
 
 struct SZ_L2_ORDER_STAT
 {
@@ -621,8 +647,8 @@ enum DC_TYPE
     DCT_DIDSTATIC,          //DID数据，模板号为100003，静态码表数据，结构为DC_HEAD+DC_STKSTATIC（不含STK_STATIC）+DC_DIDHEAD+DC_DIDCompress+DATA
 	DCT_INCODESTATIC,		//<--外码转换成内码后的静态数据,28
 
-	DCT_SZL2_FULL_ORDER=100,//<--委托队列多笔明细，深圳Level2特有
-	DCT_SZL2_FULL_TRADE=101,//<--成交,撤单队列多笔明细，深圳Level2特有
+	DCT_SZL2_ORDER_FIVE=100,//<--委托队列多笔明细，深圳Level2特有
+	DCT_SZL2_TRADE_FIVE=101,//<--成交,撤单队列多笔明细，深圳Level2特有
 };
 
 #define SIMPLE_ENCY_MASK	0x7C59ACDC

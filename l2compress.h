@@ -39,7 +39,7 @@ int ExpandL2AccuWD(const BYTE* pData,int nDataLen,WORD& wMarket,DC_SHL2_ACCU_WD*
 
 //压缩逐笔委托统计
 BOOL CompressL2OrderStat(WORD wMarket,const DC_SZL2_ORDER_STAT* pStat,BYTE* pBuf,int& nBufSize);				//nBufSize表示字节数,返回后表示压缩后的总长度,压缩成功返回TRUE
-int ExpandL2OrderStat(const BYTE* pData,int nDataLen,WORD& wMarket,DC_SZL2_ORDER_STAT* pStatBuf,int& nBufSize);	//nBufSize表示字节数,返回后表示压缩后的总长度,返回解压缩成功数量
+int ExpandL2OrderStat(const BYTE* pData,int nDataLen,DC_SZL2_ORDER_STAT* pStatBuf,int& nBufSize);	//nBufSize表示字节数,返回后表示压缩后的总长度,返回解压缩成功数量
 
 #pragma pack(pop)
 

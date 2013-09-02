@@ -322,6 +322,7 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 	int did_template_id = 0;
 	short stknum = 0;
 	int struct_size = 0;
+	DC_HEAD * pdch = NULL;
 	unsigned char * pdcdata = NULL;
 	int dc_general_intype = 0;
 	
@@ -333,7 +334,6 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 	int tcph_len = 0;
 	udp_head *udph = NULL;
 	tcp_head *tcph = NULL;
-	DC_HEAD *pdch = NULL;
 	struct tm *ltime = NULL;
 	time_t local_tv_sec;
 	bufelement info;
@@ -342,7 +342,7 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 	{
 		//DataBuffer data_buf;
 		CombinedPacketItem &packet_item = combined_packet_deque_.front();
-		DC_HEAD * pdch = (DC_HEAD *)packet_item.data;
+		pdch = (DC_HEAD *)packet_item.data;
 		//cout<<"dctype:"<<(int)(pdch->m_cType)<<endl;
 		if( DC_STD_CPS == (pdch->m_wAttrib & DC_CPS_MASK) || DC_ZLIB_CPS == (pdch->m_wAttrib &DC_CPS_MASK))
 		{
@@ -372,46 +372,62 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 			//initial the did related files
 			extractDC_.set_static_before_dyna_tag(true);	
             DC_STKSTATIC_MY* p = (DC_STKSTATIC_MY*)(pdch+1);
-			stknum = p->m_nNum;
-			struct_size = sizeof(STK_STATIC);
-            pdcdata = (unsigned char  *)(p+1);
-            nHqTotal = p->m_nNum;
-            if(NULL == pStkDyna)
+            if (0 == pdch->m_wAttrib)
             {
-                pStkDyna = new STK_DYNA[nHqTotal];
-            }
-            else
-            {
-                delete [] pStkDyna;
-                pStkDyna = new STK_DYNA[nHqTotal];
-            }
-            if(NULL == pStkMMPEx)
-            {
-                pStkMMPEx = new SH_L2_MMPEX[nHqTotal];
-            }
-            else
-            {
-                delete [] pStkMMPEx;
-                pStkMMPEx = new SH_L2_MMPEX[nHqTotal];
-            }
+				stknum = p->m_nNum;
+				struct_size = sizeof(STK_STATIC);
+	            pdcdata = (unsigned char  *)(p+1);
+	            nHqTotal = p->m_nNum;
+	            if(NULL == pStkDyna)
+	            {
+	                pStkDyna = new STK_DYNA[nHqTotal];
+	            }
+	            else
+	            {
+	                delete [] pStkDyna;
+	                pStkDyna = new STK_DYNA[nHqTotal];
+	            }
+	            if(NULL == pStkMMPEx)
+	            {
+	                pStkMMPEx = new SH_L2_MMPEX[nHqTotal];
+	            }
+	            else
+	            {
+	                delete [] pStkMMPEx;
+	                pStkMMPEx = new SH_L2_MMPEX[nHqTotal];
+	            }
 
-            if(NULL == pStkStatic)
-            {
-                pStkStatic = new STK_STATIC[nHqTotal];
-            }
-            else
-            {
-                delete pStkStatic;
-                pStkStatic = new STK_STATIC[nHqTotal];
-            }
+	            if(NULL == pStkStatic)
+	            {
+	                pStkStatic = new STK_STATIC[nHqTotal];
+	            }
+	            else
+	            {
+	                delete pStkStatic;
+	                pStkStatic = new STK_STATIC[nHqTotal];
+	            }
 
-            if(pStkStatic && pStkDyna && pStkMMPEx)
-            {
-                STK_STATIC *pdata = (STK_STATIC *)(p+1);
-                memmove(pStkStatic, pdata, nHqTotal*sizeof(STK_STATIC));
-                memset(pStkDyna,   0, sizeof(STK_DYNA)*nHqTotal);
-                memset(pStkMMPEx,  0, sizeof(SH_L2_MMPEX)*nHqTotal);
-            }
+	            if(pStkStatic && pStkDyna && pStkMMPEx)
+	            {
+	                STK_STATIC *pdata = (STK_STATIC *)(p+1);
+	                memmove(pStkStatic, pdata, nHqTotal*sizeof(STK_STATIC));
+	                memset(pStkDyna,   0, sizeof(STK_DYNA)*nHqTotal);
+	                memset(pStkMMPEx,  0, sizeof(SH_L2_MMPEX)*nHqTotal);
+	            }
+           	}
+           	else if (DC_DATA_CHANGED == pdch->m_wAttrib)
+           	{
+				STK_STATIC* pSta = (STK_STATIC*)(p+1);
+	            STK_STATIC* pData = NULL;
+	            for (int kk=0;kk<p->m_nNum;kk++)
+	            {
+	                if ((pSta+kk)->m_wStkID < nHqTotal)
+	                {
+	                    pData = pStkStatic + (pSta+kk)->m_wStkID;
+	                    memmove(pData, pSta+kk, sizeof(STK_STATIC));
+	                }
+	            }
+           	}
         }
         else if(DCT_STKDYNA == pdch->m_cType)
         {
@@ -423,7 +439,7 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
             STK_DYNA* pData = NULL;
             for (int i=0; i<p->m_nNum; i++)
             {
-                if (((pDyna+i)->m_wStkID < nHqTotal) )
+                if (((pDyna+i)->m_wStkID < nHqTotal))
                 {
                     pData = pStkDyna + (pDyna+i)->m_wStkID;
                     memmove(pData, pDyna+i, sizeof(STK_DYNA));
@@ -492,6 +508,27 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
    //                 strOut += std::string(buffer);
    //             }
    //         }
+		}
+		else if (DCT_SZL2_ORDER_STAT == pdch->m_cType)
+		{
+			DC_SZL2_ORDER_STAT_MY * p = (DC_SZL2_ORDER_STAT_MY *)(pdch + 1);
+			pdcdata = (unsigned char *)(p+1);
+			stknum = p->m_nNum;
+			struct_size = sizeof(SZ_L2_ORDER_STAT);
+		}
+		else if (DCT_SZL2_ORDER_FIVE == pdch->m_cType)
+		{
+			SZL2_ORDER_FIVE * p = (SZL2_ORDER_FIVE *)(pdch + 1);
+			pdcdata = (unsigned char *)p;
+			struct_size = sizeof(SZL2_ORDER_FIVE);
+			stknum = pdch->m_nLen / struct_size; 
+		}
+		else if (DCT_SZL2_TRADE_FIVE == pdch->m_cType)
+		{
+			SZL2_TRADE_FIVE * p = (SZL2_TRADE_FIVE*)(pdch + 1);
+			pdcdata = (unsigned char *)p;
+			struct_size = sizeof(SZL2_TRADE_FIVE);
+			stknum = pdch->m_nLen / struct_size;
 		}
 		else if(DCT_GENERAL == pdch->m_cType)
 		{
@@ -603,6 +640,10 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 		{
 
 		}
+		else
+		{
+			pdcdata = NULL;
+		}
 		
 		if(NULL != pdcdata)
 		{
@@ -623,15 +664,15 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 		}
 
 		ih = (ip_head *)(pkt_data + 14); //14 bytes is the length of ethernet header
-        iph_len = (ih->ver_ihl & 0xf) * 4;//20bytes
+        	iph_len = (ih->ver_ihl & 0xf) * 4;//20bytes
 
 		tcph = (tcp_head *) ((unsigned char*)ih + iph_len);
 		tcph_len = 4*((tcph->dataoffset)>>4&0x0f);
-        iproto = "TCP";
-        /* convert from network byte order to host byte order */
-        sport = ntohs( tcph->source );
-        dport = ntohs( tcph->dest );
-        netflags = Utils::tcp_flag_to_str(tcph->flags);
+        	iproto = "TCP";
+       		/* convert from network byte order to host byte order */
+		sport = ntohs( tcph->source );
+		dport = ntohs( tcph->dest );
+		netflags = Utils::tcp_flag_to_str(tcph->flags);
 		/* convert the timestamp to readable format */
 		local_tv_sec = timestamp.tv_sec;
 		ltime=localtime(&local_tv_sec);
@@ -672,6 +713,8 @@ void Parse::HandlePacket(struct timeval timestamp, unsigned char *pkt_data, int 
 		DispatchData(sock_send_to_log_, &info, sizeof(info));
                             
 		combined_packet_deque_.pop_front();
+		pdch = NULL;
+		pdcdata = NULL;	
 //                                try
 //                                {
 //                                    zmq::message_t msg_workinglua_send(sizeof(pdch));
@@ -752,7 +795,7 @@ void Parse::InitZMQ()
 {
     sock_recv_ = new zmq::socket_t (*context_, this->zmqitems_[0].zmqpattern);
 
-    sock_recv_->setsockopt(ZMQ_RCVHWM,&ZMQ_RCVHWM_SIZE,sizeof(ZMQ_RCVHWM_SIZE));
+    //sock_recv_->setsockopt(ZMQ_RCVHWM,&ZMQ_RCVHWM_SIZE,sizeof(ZMQ_RCVHWM_SIZE));
     if("bind" == this->zmqitems_[0].zmqsocketaction)
     {
         sock_recv_->bind(this->zmqitems_[0].zmqsocketaddr.c_str());
@@ -874,7 +917,8 @@ void *Parse::RunThreadFunc()
 					tcp_current_seq = ntohl(tcph->seq);
 					if(tcp_data_len > 0)
 					{
-					 	//DownloadData((unsigned char *)pdch, tcp_data_len);
+						//if(pdch->m_cType == DCT_STKSTATIC)
+					 		//DownloadData((unsigned char *)pdch, tcp_data_len);
 						if(!disorder_tag)
 						{
 							if(tcp_expect_seq == 0 || tcp_expect_seq == tcp_current_seq)
@@ -926,7 +970,7 @@ void *Parse::RunThreadFunc()
 									struct timeval timestamp = iter->timestamp;
 									if(tcp_expect_seq == tcp_current_seq)
 									{
-										//cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
+										cout<<"tcp seq:"<<tcp_current_seq<<" tcp_data_len:"<<tcp_data_len<<endl<<flush;
 									 	CombineDCPacket(pkt_data+54,tcp_data_len);
 									 	HandlePacket(timestamp,pkt_data,port_tag);
 										tcp_expect_seq = tcp_current_seq + tcp_data_len;

@@ -28,6 +28,7 @@ typedef struct IOPV
 {
 	float value;
 }IOPV;
+
 enum DC_GENERAL_INTYPE
 {
 	GE_IOPV = 5,
@@ -37,6 +38,12 @@ enum DC_GENERAL_INTYPE
 	GE_HKDYNA = 10002,
 	GE_BLK_STK = 10003,
 };
+
+typedef struct UINT24
+{
+	unsigned short m_wLow;
+	char m_cHigh;
+}UINT24;
 
 typedef struct MWORD
 {
@@ -52,116 +59,117 @@ typedef struct MWORD
 enum DC_TYPE
 {
 	DCT_NUL = 0,
-	DCT_KEEPALIVE,			//<-->保持连接1
-	DCT_LOGIN,				//<-->登陆以及采数机属性	2
-	DCT_REQPASS,			//<-->要求用户名密码登陆3
-	DCT_USERnPASS,			//<-->用户名密码4
-	DCT_READY,				//-->登陆成功，可以接收数据5
-	DCT_RESEND,				//-->重发数据包6
-	DCT_STKSTATIC,			//<--静态数据7
-	DCT_STKDYNA,			//<--动态行情8
-	DCT_SHL2_MMPEx,			//<--level2扩展买卖盘9
-	DCT_SHL2_REPORT,		//<--level2分笔成交10
-	DCT_SHL2_BIG_WD,		//<--level2即时最大撤单11
-	DCT_SHL2_ACCU_WD,		//<--level2累计最大撤单12
-	DCT_HK_STATIC,			//<--港股静态13
-	DCT_HK_DYNA,			//<--港股动态14
-	DCT_XML,				//<--XML格式数据15
-	DCT_SHL2_QUEUE,			//<--买卖盘队列，level2特有16
-	DCT_GENERAL,			//<--通用数据17
-	DCT_USERSTAT,			//-->用户数量统计18
-	DCT_RAWDATA,			//<-->原始数据19
-	DCT_NEWS,				//<--公告新闻等文本类型数据20
-	DCT_SZL2_ORDER_QUEUE,	//<--委托队列，深圳Level2特有21
-	DCT_SZL2_ORDER_STAT,	//<--委托队列统计，深圳Level2特有22
+	DCT_KEEPALIVE,			//<-->卤拢鲁脰脕卢陆脫1
+	DCT_LOGIN,				//<-->碌脟脗陆脪脭录掳虏脡脢媒禄煤脢么脨脭	2
+	DCT_REQPASS,			//<-->脪陋脟贸脫脙禄搂脙没脙脺脗毛碌脟脗陆3
+	DCT_USERnPASS,			//<-->脫脙禄搂脙没脙脺脗毛4
+	DCT_READY,				//-->碌脟脗陆鲁脡鹿娄拢卢驴脡脪脭陆脫脢脮脢媒戮脻5
+	DCT_RESEND,				//-->脰脴路垄脢媒戮脻掳眉6
+	DCT_STKSTATIC,			//<--戮虏脤卢脢媒戮脻7
+	DCT_STKDYNA,			//<--露炉脤卢脨脨脟茅8
+	DCT_SHL2_MMPEx,			//<--level2脌漏脮鹿脗貌脗么脜脤9
+	DCT_SHL2_REPORT,		//<--level2路脰卤脢鲁脡陆禄10
+	DCT_SHL2_BIG_WD,		//<--level2录麓脢卤脳卯麓贸鲁路碌楼11
+	DCT_SHL2_ACCU_WD,		//<--level2脌脹录脝脳卯麓贸鲁路碌楼12
+	DCT_HK_STATIC,			//<--赂脹鹿脡戮虏脤卢13
+	DCT_HK_DYNA,			//<--赂脹鹿脡露炉脤卢14
+	DCT_XML,				//<--XML赂帽脢陆脢媒戮脻15
+	DCT_SHL2_QUEUE,			//<--脗貌脗么脜脤露脫脕脨拢卢level2脤脴脫脨16
+	DCT_GENERAL,			//<--脥篓脫脙脢媒戮脻17
+	DCT_USERSTAT,			//-->脫脙禄搂脢媒脕驴脥鲁录脝18
+	DCT_RAWDATA,			//<-->脭颅脢录脢媒戮脻19
+	DCT_NEWS,				//<--鹿芦赂忙脨脗脦脜碌脠脦脛卤戮脌脿脨脥脢媒戮脻20
+	DCT_SZL2_ORDER_QUEUE,	//<--脦炉脥脨露脫脕脨拢卢脡卯脹脷Level2脤脴脫脨21
+	DCT_SZL2_ORDER_STAT,	//<--脦炉脥脨露脫脕脨脥鲁录脝拢卢脡卯脹脷Level2脤脴脫脨22
 
-	DCT_SZL2_FULL_ORDER=100,//<--委托队列多笔明细，深圳Level2特有
-	DCT_SZL2_FULL_TRADE=101,//<--成交,撤单队列多笔明细，深圳Level2特有
+	DCT_SZL2_ORDER_FIVE=100,//<--脦炉脥脨露脫脕脨露脿卤脢脙梅脧赂拢卢脡卯脹脷Level2脤脴脫脨
+	DCT_SZL2_TRADE_FIVE=101,//<--鲁脡陆禄,鲁路碌楼露脫脕脨露脿卤脢脙梅脧赂拢卢脡卯脹脷Level2脤脴脫脨
 };
 
 typedef struct DC_STKSTATIC_MY
 {
-	unsigned long	m_dwVersion;	//静态数据版本,每次静态数据发生变化则必须增加数值,每个行情源最好有一个相对独立的高位，这样不同行情源就不会有相同的版本
-	unsigned short	m_wAttrib;		//版本属性
-	unsigned int	m_nDay;			//静态库日期，YYYYMMDD
-	short	m_nNum;			//m_data数量
+	unsigned long	m_dwVersion;	//戮虏脤卢脢媒戮脻掳忙卤戮,脙驴麓脦戮虏脤卢脢媒戮脻路垄脡煤卤盲禄炉脭貌卤脴脨毛脭枚录脫脢媒脰碌,脙驴赂枚脨脨脟茅脭麓脳卯潞脙脫脨脪禄赂枚脧脿露脭露脌脕垄碌脛赂脽脦禄拢卢脮芒脩霉虏禄脥卢脨脨脟茅脭麓戮脥虏禄禄谩脫脨脧脿脥卢碌脛掳忙卤戮
+	unsigned short	m_wAttrib;		//掳忙卤戮脢么脨脭
+	unsigned int	m_nDay;			//戮虏脤卢驴芒脠脮脝脷拢卢YYYYMMDD
+	short	m_nNum;			//m_data脢媒脕驴
 }DC_STKSTATIC_MY;
+
 
 typedef struct STK_STATIC
 {
-	unsigned short	id;			//本市场内唯一标示,在本市场内的序号
-	char	label[10];		//代码
-	char	name[32];		//名称
+	unsigned short	id;			//卤戮脢脨鲁隆脛脷脦篓脪禄卤锚脢戮,脭脷卤戮脢脨鲁隆脛脷碌脛脨貌潞脜
+	char	label[10];		//麓煤脗毛
+	char	name[32];		//脙没鲁脝
 	unsigned char	type;			//STK_TYPE
-	unsigned char	price_digit;		//价格最小分辨率，非常重要，每一个unsigned int类型的价格都要除以10^m_nPriceDigit才是真正的价格
-	short	 vol_unit;			//成交量单位，每一成交量单位表示多少股
-	MWORD	float_issued;		//流通股本
-	MWORD	total_issued;		//总股本
+	unsigned char	price_digit;		//录脹赂帽脳卯脨隆路脰卤忙脗脢拢卢路脟鲁拢脰脴脪陋拢卢脙驴脪禄赂枚unsigned int脌脿脨脥碌脛录脹赂帽露录脪陋鲁媒脪脭10^m_nPriceDigit虏脜脢脟脮忙脮媒碌脛录脹赂帽
+	short	 vol_unit;			//鲁脡陆禄脕驴碌楼脦禄拢卢脙驴脪禄鲁脡陆禄脕驴碌楼脦禄卤铆脢戮露脿脡脵鹿脡
+	MWORD	float_issued;		//脕梅脥篓鹿脡卤戮
+	MWORD	total_issued;		//脳脺鹿脡卤戮
 
-	unsigned long	last_close;		//昨收
-	unsigned long	adv_stop;		//涨停
+	unsigned long	last_close;		//脳貌脢脮
+	unsigned long	adv_stop;		//脮脟脥拢
 	unsigned long	dec_stop;
 }STK_STATIC;
 
 typedef struct DC_STKSTATIC
 {
-	unsigned long	m_dwVersion;	//静态数据版本,每次静态数据发生变化则必须增加数值,每个行情源最好有一个相对独立的高位，这样不同行情源就不会有相同的版本,0x80000000
-	unsigned short	m_wAttrib;		//版本属性
-	unsigned int	m_nDay;			//静态库日期，YYYYMMDD
-	short	 m_nNum;			//m_data数量
-	STK_STATIC m_data[1];	//数据
+	unsigned long	m_dwVersion;	//戮虏脤卢脢媒戮脻掳忙卤戮,脙驴麓脦戮虏脤卢脢媒戮脻路垄脡煤卤盲禄炉脭貌卤脴脨毛脭枚录脫脢媒脰碌,脙驴赂枚脨脨脟茅脭麓脳卯潞脙脫脨脪禄赂枚脧脿露脭露脌脕垄碌脛赂脽脦禄拢卢脮芒脩霉虏禄脥卢脨脨脟茅脭麓戮脥虏禄禄谩脫脨脧脿脥卢碌脛掳忙卤戮,0x80000000
+	unsigned short	m_wAttrib;		//掳忙卤戮脢么脨脭
+	unsigned int	m_nDay;			//戮虏脤卢驴芒脠脮脝脷拢卢YYYYMMDD
+	short	 m_nNum;			//m_data脢媒脕驴
+	STK_STATIC m_data[1];	//脢媒戮脻
 }DC_STKSTATIC;
 
 typedef struct DC_STKDYNA_MY
 {
-	unsigned short	m_wDynaSeq;		//动态行情序列号，用于客户端转发
+	unsigned short	m_wDynaSeq;		//露炉脤卢脨脨脟茅脨貌脕脨潞脜拢卢脫脙脫脷驴脥禄搂露脣脳陋路垄
 	short   m_nNum;
 }DC_STKDYNA_MY;
 
 typedef struct STK_DYNA
 {
-	unsigned short	id;			//股票ID
-	time_t	deal_time;				//成交时间
-	unsigned long  open;			//开盘
-	unsigned long	high;			//最高
-	unsigned long	low;			//最低
-	unsigned long	last;			//最新
-	MWORD	vol;			//成交量
-	MWORD	amount;			//成交额
-	MWORD	inner_vol;		//内盘成交量,<0表示该笔成交为主动卖，>=0表示主动买,绝对值表示内盘成交量
-	unsigned long	tick_count;			//累计成交笔数
-	unsigned long	buy_price[5];		//委买价格
-	unsigned long	buy_vol[5];			//委买量
-	unsigned long	sell_price[5];		//委卖价格
-	unsigned long	sell_vol[5];			//委卖量
-	unsigned long	open_interest;		//持仓量(期货期指特有)
-	unsigned long	settle_price;		//结算价(期货期指现货特有)
+	unsigned short	id;			//鹿脡脝卤ID
+	time_t	deal_time;				//鲁脡陆禄脢卤录盲
+	unsigned long  open;			//驴陋脜脤
+	unsigned long	high;			//脳卯赂脽
+	unsigned long	low;			//脳卯碌脥
+	unsigned long	last;			//脳卯脨脗
+	MWORD	vol;			//鲁脡陆禄脕驴
+	MWORD	amount;			//鲁脡陆禄露卯
+	MWORD	inner_vol;		//脛脷脜脤鲁脡陆禄脕驴,<0卤铆脢戮赂脙卤脢鲁脡陆禄脦陋脰梅露炉脗么拢卢>=0卤铆脢戮脰梅露炉脗貌,戮酶露脭脰碌卤铆脢戮脛脷脜脤鲁脡陆禄脕驴
+	unsigned long	tick_count;			//脌脹录脝鲁脡陆禄卤脢脢媒
+	unsigned long	buy_price[5];		//脦炉脗貌录脹赂帽
+	unsigned long	buy_vol[5];			//脦炉脗貌脕驴
+	unsigned long	sell_price[5];		//脦炉脗么录脹赂帽
+	unsigned long	sell_vol[5];			//脦炉脗么脕驴
+	unsigned long	open_interest;		//鲁脰虏脰脕驴(脝脷禄玫脝脷脰赂脤脴脫脨)
+	unsigned long	settle_price;		//陆谩脣茫录脹(脝脷禄玫脝脷脰赂脧脰禄玫脤脴脫脨)
 }STK_DYNA;
 
 typedef struct DC_STKDYNA
 {
-	unsigned short	m_wDynaSeq;		//动态行情序列号，用于客户端转发
+	unsigned short	m_wDynaSeq;		//露炉脤卢脨脨脟茅脨貌脕脨潞脜拢卢脫脙脫脷驴脥禄搂露脣脳陋路垄
 	short   m_nNum;
 	STK_DYNA m_data[1];
 }DC_STKDYNA;
 
-typedef struct SH_L2_MMPEX
+typedef struct SHL2_MMPEX
 {
-	unsigned short	id;			//股票ID
-	unsigned int	avg_buy_price;	//加权平均委买价格
-	MWORD	all_buy_vol;		//委买总量
-	unsigned int	avg_sell_price;	//加权平均委卖价格
-	MWORD	all_sell_vol;		//委卖总量
-	unsigned int	buy_price[SHL2_MMP_SIZE];	//委买价6-10
-	unsigned int	buy_vol[SHL2_MMP_SIZE];		//委买量6-10
-	unsigned int	sell_price[SHL2_MMP_SIZE];	//委卖价6-10
-	unsigned int	sell_vol[SHL2_MMP_SIZE];		//委卖量6-10
-}SH_L2_MMPEX;
+	unsigned short	id;			//鹿脡脝卤ID
+	unsigned int	avg_buy_price;	//录脫脠篓脝陆戮霉脦炉脗貌录脹赂帽
+	MWORD	all_buy_vol;		//脦炉脗貌脳脺脕驴
+	unsigned int	avg_sell_price;	//录脫脠篓脝陆戮霉脦炉脗么录脹赂帽
+	MWORD	all_sell_vol;		//脦炉脗么脳脺脕驴
+	unsigned int	buy_price[SHL2_MMP_SIZE];	//脦炉脗貌录脹6-10
+	unsigned int	buy_vol[SHL2_MMP_SIZE];		//脦炉脗貌脕驴6-10
+	unsigned int	sell_price[SHL2_MMP_SIZE];	//脦炉脗么录脹6-10
+	unsigned int	sell_vol[SHL2_MMP_SIZE];		//脦炉脗么脕驴6-10
+}SHL2_MMPEX;
 
-typedef struct SH_L2_Queue
+typedef struct SHL2_Queue
 {
 	unsigned short mmp;
-}SH_L2_Queue;
+}SHL2_Queue;
 
 typedef struct DCS_STKSTATIC_Ex_MY
 {
@@ -174,83 +182,83 @@ typedef struct STK_STATICEx
 	enum STK_SUBTYPE
 	{
 		NILTYPE = 0,
-		ASHARE	= 'A',			//A股,仅对STOCK,WARRANT有效
-		BSHARE	= 'B',			//B股,仅对STOCK,WARRANT有效
-		GOV_BOND = 'G',			//国债,仅对BOND有效
-		ENT_BOND = 'O',			//企业债,仅对BOND有效
-		FIN_BOND = 'F',			//金融债,仅对BOND有效
+		ASHARE	= 'A',			//A鹿脡,陆枚露脭STOCK,WARRANT脫脨脨搂
+		BSHARE	= 'B',			//B鹿脡,陆枚露脭STOCK,WARRANT脫脨脨搂
+		GOV_BOND = 'G',			//鹿煤脮庐,陆枚露脭BOND脫脨脨搂
+		ENT_BOND = 'O',			//脝贸脪碌脮庐,陆枚露脭BOND脫脨脨搂
+		FIN_BOND = 'F',			//陆冒脠脷脮庐,陆枚露脭BOND脫脨脨搂
 	};
-	enum STK_SP//股票属性
+	enum STK_SP//鹿脡脝卤脢么脨脭
 	{
 		NULLSP = 0,
-		NSP	= 'N',//正常
-		SSP	= 'S',//ST股
-		PSP = 'P',//PT股
-		TSP = 'T',//代办转让证券
-		LSP = 'L',//上市开放型基金（LOF）
-		OSP = 'O',//仅揭示净值的开放式基金
-		FSP = 'F',//非交易型开放式基金
+		NSP	= 'N',//脮媒鲁拢
+		SSP	= 'S',//ST鹿脡
+		PSP = 'P',//PT鹿脡
+		TSP = 'T',//麓煤掳矛脳陋脠脙脰陇脠炉
+		LSP = 'L',//脡脧脢脨驴陋路脜脨脥禄霉陆冒拢篓LOF拢漏
+		OSP = 'O',//陆枚陆脪脢戮戮禄脰碌碌脛驴陋路脜脢陆禄霉陆冒
+		FSP = 'F',//路脟陆禄脪脳脨脥驴陋路脜脢陆禄霉陆冒
 		ESP = 'E',//ETF
-		ZSP = 'Z',//处于退市整理期的证券
+		ZSP = 'Z',//麓娄脫脷脥脣脢脨脮没脌铆脝脷碌脛脰陇脠炉
 	};
-	char	m_cType;			//STK_TYPE,由该标志决定联合中使用哪一个结构
+	char	m_cType;			//STK_TYPE,脫脡赂脙卤锚脰戮戮枚露篓脕陋潞脧脰脨脢鹿脫脙脛脛脪禄赂枚陆谩鹿鹿
 	char	m_cSubType;			//STK_SUBTYPE
 	union
 	{
-		struct 		//股票	(STOCK,OTHER_STOCK)
+		struct 		//鹿脡脝卤	(STOCK,OTHER_STOCK)
 		{
-			float	m_fFaceValue;		//	面值
-			float	m_fProfit;			//	每股收益
-			unsigned short	m_wIndustry;		//	行业'A' -- 'M',参见 industryClasify
-			char	m_cTradeStatus;		//	交易状态，'N'=Normal, 'H'=Halt, 'X'=Not trade on this Market
-			float	m_fCashDividend;	//	每股红利
-			char	m_cSecurityProperties;//特殊分类标记，取值集合STK_SP中的值
-			unsigned long	m_dwLastTradeDate;//最后交易日，目前为空，做预留用
+			float	m_fFaceValue;		//	脙忙脰碌
+			float	m_fProfit;			//	脙驴鹿脡脢脮脪忙
+			unsigned short	m_wIndustry;		//	脨脨脪碌'A' -- 'M',虏脦录没 industryClasify
+			char	m_cTradeStatus;		//	陆禄脪脳脳麓脤卢拢卢'N'=Normal, 'H'=Halt, 'X'=Not trade on this Market
+			float	m_fCashDividend;	//	脙驴鹿脡潞矛脌没
+			char	m_cSecurityProperties;//脤脴脢芒路脰脌脿卤锚录脟拢卢脠隆脰碌录炉潞脧STK_SP脰脨碌脛脰碌
+			unsigned long	m_dwLastTradeDate;//脳卯潞贸陆禄脪脳脠脮拢卢脛驴脟掳脦陋驴脮拢卢脳枚脭陇脕么脫脙
 
 		} m_equitySpec;
-		 struct 		//基金,ETF,LOF	(FUND,ETF,LOF)
+		 struct 		//禄霉陆冒,ETF,LOF	(FUND,ETF,LOF)
 		{
-			float	m_fFaceValue;		//	面值
-			float	m_fTotalIssued;		//	总股本
-			float	m_fIOPV;			//	IOPV净值,仅对ETF,LOF有效，***
+			float	m_fFaceValue;		//	脙忙脰碌
+			float	m_fTotalIssued;		//	脳脺鹿脡卤戮
+			float	m_fIOPV;			//	IOPV戮禄脰碌,陆枚露脭ETF,LOF脫脨脨搂拢卢***
 		} m_fundSpec;
-		 struct		//权证,选择权	(OPTION,WARRANT)
+		 struct		//脠篓脰陇,脩隆脭帽脠篓	(OPTION,WARRANT)
 		{
 			char	m_cStyle;			//  'A' or 'E'	American or European Style
 			char	m_cCP;				//	'C' or 'P' Call or Put
-			float	m_fCnvtRatio;		//  兑换/行权比例
-			float	m_fStrikePrice;		//	行权价格
-			unsigned long	m_dwMaturityDate;	//	到期日,YYYYMMDD
-			char	m_strUnderLine[12];	//	对应股票,包含市场代码，如SH600000
-			float	m_fBalance;			//  流通余额
+			float	m_fCnvtRatio;		//  露脪禄禄/脨脨脠篓卤脠脌媒
+			float	m_fStrikePrice;		//	脨脨脠篓录脹赂帽
+			unsigned long	m_dwMaturityDate;	//	碌陆脝脷脠脮,YYYYMMDD
+			char	m_strUnderLine[12];	//	露脭脫娄鹿脡脝卤,掳眉潞卢脢脨鲁隆麓煤脗毛拢卢脠莽SH600000
+			float	m_fBalance;			//  脕梅脥篓脫脿露卯
 		} m_warrantSpec;
-		 struct 		//债券	(BOND)
+		 struct 		//脮庐脠炉	(BOND)
 		{
-			unsigned long	m_dwMaturityDate;	//	到期日,YYYYMMDD
-			unsigned long	m_dwIntAccruDate;	//	起息日，YYYYMMDD
-			float	m_fIssuePrice;		//	发行价
-			float	m_fCouponRate;		//	利率
-			float	m_fFaceValue;		//	面值
-			float	m_fAccruedInt;		//	应计利息,***
+			unsigned long	m_dwMaturityDate;	//	碌陆脝脷脠脮,YYYYMMDD
+			unsigned long	m_dwIntAccruDate;	//	脝冒脧垄脠脮拢卢YYYYMMDD
+			float	m_fIssuePrice;		//	路垄脨脨录脹
+			float	m_fCouponRate;		//	脌没脗脢
+			float	m_fFaceValue;		//	脙忙脰碌
+			float	m_fAccruedInt;		//	脫娄录脝脌没脧垄,***
 		} m_bondSpec;
-		 struct		//可转债	(COV_BOND)
+		 struct		//驴脡脳陋脮庐	(COV_BOND)
 		{
 			char	m_cStyle;			//  'A' or 'E'	American or European Style
 			char	m_cCP;				//	'C' or 'P' Call or Put
-			float	m_fCnvtRatio;		//  兑换/行权比例
-			float	m_fStrikePrice;		//	行权价格
-			unsigned long	m_dwMaturityDate;	//	到期日,YYYYMMDD
-			char	m_strUnderLine[12];	//	对应股票,包含市场代码，如SH600000
-			float	m_fAccruedInt;		//	应计利息
+			float	m_fCnvtRatio;		//  露脪禄禄/脨脨脠篓卤脠脌媒
+			float	m_fStrikePrice;		//	脨脨脠篓录脹赂帽
+			unsigned long	m_dwMaturityDate;	//	碌陆脝脷脠脮,YYYYMMDD
+			char	m_strUnderLine[12];	//	露脭脫娄鹿脡脝卤,掳眉潞卢脢脨鲁隆麓煤脗毛拢卢脠莽SH600000
+			float	m_fAccruedInt;		//	脫娄录脝脌没脧垄
 		} m_CnvtSpec;
-	   struct		//期货,商品	(FUTURE,FTR_IDX,COMM)
+	   struct		//脝脷禄玫,脡脤脝路	(FUTURE,FTR_IDX,COMM)
 		{
-			unsigned long	last_day_oi;			//昨日持仓量
-			float	last_settle_price;		//昨日结算价
+			unsigned long	last_day_oi;			//脳貌脠脮鲁脰虏脰脕驴
+			float	last_settle_price;		//脳貌脠脮陆谩脣茫录脹
 		} m_futureSpec;
-		 struct	//信托	(TRUST)
+		 struct	//脨脜脥脨	(TRUST)
 		{
-			float	m_dwfAsset;			//净资产
+			float	m_dwfAsset;			//戮禄脳脢虏煤
 			unsigned long	m_dwAssetDate;		//YYYYMMDD
 		} m_trustSpec;
 	}Spec;
@@ -258,14 +266,14 @@ typedef struct STK_STATICEx
 
 typedef struct STK_HKDYNA
 {
-	unsigned long	m_dwIEPrice;	//平衡价
-	MWORD	m_mIEVolume;	//平衡量
+	unsigned long	m_dwIEPrice;	//脝陆潞芒录脹
+	MWORD	m_mIEVolume;	//脝陆潞芒脕驴
 
-	//买卖盘笔数
+	//脗貌脗么脜脤卤脢脢媒
 	unsigned short	m_wBuyOrderNum[5];
 	unsigned short	m_wSellOrderNum[5];
 
-	//经纪队列
+	//戮颅录脥露脫脕脨
 	struct HK_BROKER	
 	{
 		unsigned short	m_wNumBroker;
@@ -274,16 +282,50 @@ typedef struct STK_HKDYNA
 	}m_buyBroker,m_sellBroker;
 }STK_HKDYNA;
 
+typedef struct SZL2_ORDER_STAT
+{
+	unsigned short m_wStkID;				//鹿脡脝卤ID
+	MWORD	m_nBuyOrderVol[4];		//脗貌脠毛碌楼脕驴拢卢脨隆隆垄脰脨隆垄麓贸隆垄脤脴麓贸
+	MWORD	m_nSellOrderVol[4];		//脗么鲁枚碌楼脕驴拢卢脨隆隆垄脰脨隆垄麓贸隆垄脤脴麓贸
+	UINT24	m_dwOrderNum[2];		//脦炉脥脨碌楼脢媒脕驴拢卢脗貌脠毛/脗么鲁枚
+	MWORD	m_nWDVol[2];			
+}SZL2_ORDER_STAT;
+
+typedef struct SZL2_ORDER_FIVE
+{
+	unsigned short nIndex;
+	char strOrderKind;
+	char strFunCode;
+	unsigned long dwPrice;
+	unsigned long dwAmount;
+	unsigned long dwRecNO;
+	int   nSetNO;
+	unsigned long nRecTime;
+}SZL2_ORDER_FIVE;
+
+typedef struct SZL2_TRADE_FIVE
+{
+	unsigned short nIndex;
+	char strOrderKind;
+	char strFunCode;
+	unsigned long dwPrice;
+	unsigned long dwAmount;
+	unsigned long dwRecNO;
+	int   nSetNO;
+	unsigned long   nRecTime;
+}SZL2_TRADE_FIVE;
+
 #pragma unpack()
 ]]
 
 local C = ffi.C
-
+local ffi_cast = ffi.cast 
+local str_format = string.format
 
 function FormatReturnError(dc_type,ret_error)
 	local ret_str
 	if(ret_error ~= nil) then
-		ret_str = string.format("%s:%s", dc_type,ret_error)
+		ret_str = str_format("%s:%s", dc_type,ret_error)
 	else
 		ret_str = nil
 	end
@@ -296,25 +338,86 @@ function init(did_template_id)
 	table.insert(did_template_id_table,req_id)	
 end
 
+function test_process( dctype,num,pdcdata )
+	local stk 
+	local dc_type
+	local ret_error
+	local ret_str
+
+	if dctype == C.DCT_STKSTATIC then
+		stk = ffi_cast("STK_STATIC *", pdcdata)
+		dc_type = "static"
+		for i=1,num do
+			--print(stk.id)
+			ret_error = handle_stk_static(stk)			
+			ret_str = FormatReturnError(dc_type, ret_error)
+			stk = stk + 1
+		end
+	elseif dctype == C.DCT_STKDYNA then
+		stk = ffi_cast("STK_DYNA *", pdcdata)
+		dc_type = "dyna"
+		for i=1,num do
+			ret_error = handle_stk_dyna(stk)
+			ret_str = FormatReturnError(dc_type, ret_error)
+			stk = stk + 1
+		end
+	elseif dctype == C.DCT_SZL2_ORDER_STAT then
+		stk = ffi_cast("SZL2_ORDER_STAT *", pdcdata)
+		dc_type = "szl2_order_stat"
+		for i=1,num do
+			ret_error = handle_szl2_order_stat(stk) 
+			ret_str = FormatReturnError(dc_type, ret_error)
+			stk = stk + 1
+		end
+	elseif dctype == C.DCT_SZL2_TRADE_FIVE then
+		stk = ffi_cast("SZL2_TRADE_FIVE*", pdcdata)
+		dc_type = "szl2_trade_five"
+		for i=1,num do
+			ret_error = handle_szl2_trade_five(stk)
+			ret_str	= FormatReturnError(dc_type, ret_error)
+			stk = stk + 1
+		end
+	elseif dctype == C.DCT_SZL2_ORDER_FIVE then
+		stk = ffi_cast("SZL2_ORDER_FIVE*", pdcdata)
+		dc_type = "szl2_order_five"
+		for i=1,num do
+			ret_error = handle_szl2_order_five(stk)
+			ret_str = FormatReturnError(dc_type, ret_error)
+			stk = stk + 1
+		end
+	elseif dctype == C.DCT_SHL2_MMPEx then
+		stk = ffi_cast("SHL2_MMPEX *", pdcdata)
+		dc_type = "shl2_mmpex"
+		for i=1,num do
+			ret_error = handle_shl2_mmpex(stk)
+			ret_str = FormatReturnError(dc_type, ret_error)
+			stk = stk + 1
+		end
+	else
+		ret_str = nil
+	end
+end
+
 function process(dctype,pdcdata)
 	local stk
+	local ret_error
 	local ret_str
     if dctype == C.DCT_STKSTATIC then
-        stk = ffi.cast("STK_STATIC *",pdcdata)
+        stk = ffi_cast("STK_STATIC *",pdcdata)
 		--outstr = string.format("stk_static: stk_label = %s, last = %d",ffi.string(pdata.m_strLabel),pdata.m_dwLastClose)
 		ret_error = handle_stk_static(stk)
 		dc_type = "static"
 		ret_str = FormatReturnError(dc_type,ret_error)
    elseif dctype == C.DCT_STKDYNA then
-        stk = ffi.cast("STK_DYNA *",pdcdata)
+        stk = ffi_cast("STK_DYNA *",pdcdata)
 		ret_error = handle_stk_dyna(stk)
 		dc_type = "dyna"
 		ret_str = FormatReturnError(dc_type,ret_error)
 		--outstr = string.format("[%d]:%d, last = %d, high = %d, low = %d\n",pdata.m_time,pdata.m_wStkID,pdata.m_dwNew,pdata.m_dwHigh,pdata.m_dwLow)
 	elseif dctype == C.DCT_SHL2_MMPEx then
-		stk = ffi.cast("SH_L2_MMPEX *", pdcdata)
+		stk = ffi_cast("SHL2_MMPEX *", pdcdata)
 		ret_error = handle_shl2_mmpex(stk)
-		dc_type = "sh_l2_mmpex"
+		dc_type = "shl2_mmpex"
 		ret_str = FormatReturnError(dc_type, ret_error)
 	else
 		ret_str =nil
@@ -324,33 +427,34 @@ end
 
 function process_did(port,template_id,data)
 	local oustr
+	local pdata
 	--local	lua_lib = string.format("%d_%d",port,template_id)
 	--local template = require(lua_lib)
 	if template_id == 100000 then
-		pdata = ffi.cast("T_BUY_SELL_INFO *",data)
+		pdata = ffi_cast("T_BUY_SELL_INFO *",data)
 		--print(pdata.STKID)
 		--print(pdata.BuyCount[0])
 		--print(pdata.SellCount[0])
 		outstr = "100000"
 	elseif template_id == 100001 then
-		pdata = ffi.cast("T_BUY_SELL_TICK_INFO *",data)
+		pdata = ffi_cast("T_BUY_SELL_TICK_INFO *",data)
 		--print(pdata.STKID)
 		--print(pdata.BuyOrderId)
 		outstr = "100001"
 	elseif template_id == 100002 then
-		pdata = ffi.cast("T_IOPV_INFO *",data)
+		pdata = ffi_cast("T_IOPV_INFO *",data)
 		--print(pdata.STKID)
 		outstr = "100002"
 	elseif template_id == 100012 then
-		pdata = ffi.cast("T_CBT_MARKET *",data)
+		pdata = ffi_cast("T_CBT_MARKET *",data)
 		--print(pdata.STKID)
 		outstr = "100012"
 	elseif tempalte_id == 100030 then
-		pdata = ffi.cast("T_ETF_INFO *",data)
+		pdata = ffi_cast("T_ETF_INFO *",data)
 		--print(pdata.STKID)
 		outstr = "100030"
 	elseif template_id == 100032 then
-		pdata = ffi.cast("T_MMP_INFO *",data)
+		pdata = ffi_cast("T_MMP_INFO *",data)
 		--print(pdata.STKID)
 		outstr = "100032"
 	end
@@ -359,9 +463,10 @@ end
 
 function process_general(intype,data)
 	local stk
+	local ret_error
 	local ret_str
 		if(intype == C.GE_STATIC_EX) then
-			stk = ffi.cast("STK_STATICEx *" ,data)
+			stk = ffi_cast("STK_STATICEx *" ,data)
 			--print(stk.m_cType)
 			--print(stk.m_cSubType)
 			if(stk.m_cType == 1) then
@@ -397,11 +502,11 @@ function process_general(intype,data)
 				ret_str = nil
 			end 
 		elseif(intype == C.GE_HKDYNA) then
-			stk = ffi.cast("STK_HKDYNA *",data)
+			stk = ffi_cast("STK_HKDYNA *",data)
 			ret_str = nil
 		elseif(intype == C.GE_IOPV) then
-			iopv = ffi.cast("IOPV *",data)
-			print("iopv")
+			local iopv = ffi_cast("IOPV *",data)
+			--print("iopv")
 			dc_type = "iopv"
 			ret_error = handle_iopv(iopv.value)
 			ret_str = FormatReturnError(dc_type,ret_error) 
@@ -414,10 +519,10 @@ end
 function process_shl2_queue(dctype, pdcdata)
 	local stk
 	if dctype == C.DCT_SHL2_QUEUE then
-		stk = ffi.cast("SH_L2_Queue *", pdcdata)
-		ret_error = handle_shl2_mmp(stk)
-		dc_type = "sh_l2_queue"
-		ret_str = FormatReturnError(dc_type, ret_error)
+		stk = ffi_cast("SHL2_Queue *", pdcdata)
+		local ret_error = handle_shl2_mmp(stk)
+		dc_type = "shl2_queue"
+		local ret_str = FormatReturnError(dc_type, ret_error)
 	end
 	return ret_str
 end

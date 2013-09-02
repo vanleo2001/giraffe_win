@@ -1,0 +1,1258 @@
+clang version 3.3 (tags/RELEASE_33/final)
+Target: i386-pc-linux-gnu
+Thread model: posix
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name monitor.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/monitor-m5NqAW.o -x c++ monitor.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from monitor.cc:10:
+./xml_class_set.h:41:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+In file included from monitor.cc:12:
+In file included from ./log.h:19:
+./basethread.h:25:15: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+           ~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:25:15: note: place parentheses around the assignment to silence this warning
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+           (                                              )
+./basethread.h:25:15: note: use '==' to turn this assignment into an equality comparison
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+              ==
+./basethread.h:43:16: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err = pthread_join(tid_,&tret))
+           ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:43:16: note: place parentheses around the assignment to silence this warning
+        if(err = pthread_join(tid_,&tret))
+               ^
+           (                             )
+./basethread.h:43:16: note: use '==' to turn this assignment into an equality comparison
+        if(err = pthread_join(tid_,&tret))
+               ^
+               ==
+./basethread.h:54:10: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+                if(err = pthread_cancel(tid_))
+                   ~~~~^~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:54:10: note: place parentheses around the assignment to silence this warning
+                if(err = pthread_cancel(tid_))
+                       ^
+                   (                         )
+./basethread.h:54:10: note: use '==' to turn this assignment into an equality comparison
+                if(err = pthread_cancel(tid_))
+                       ^
+                       ==
+In file included from monitor.cc:14:
+In file included from ./handle_net_packet.h:6:
+In file included from ./parse.h:23:
+In file included from ./data.h:4:
+./datacolect.h:239:10: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'A',"<U+0169><C4><C1><U+04B5>"},
+                      ^~~~~~~~
+./datacolect.h:240:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'B',"<B2><U+027E><F2><U+04B5>"},
+              ^~~~        ~~~~
+./datacolect.h:241:15: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3043,"<U+02B3><U+01B7><D2><FB><C1><CF>"},    //C0
+                                 ^~~~~~~~~~~~~~~~
+./datacolect.h:242:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3143,"<B7><C4><U+05AF><B7><FE><U+05F0>"},    //C1
+                 ^~~~~~~~        ~~~~~~~~
+./datacolect.h:243:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3243,"<U+013E><B2><U+013C><U+04BE><DF>"},    //C2
+                         ^~~~                ~~~~
+./datacolect.h:244:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3343,"<D4><EC><U+05BD><U+04E1><U+02E2>"},    //C3
+                 ^~~~~~~~
+./datacolect.h:245:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3443,"<U+02AF><D3><U+037B><AF><B9><A4>"},    //C4
+                         ^~~~        ~~~~~~~~~~~~
+./datacolect.h:246:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3543,"<B5><E7><D7><D3>"},                //C5
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:247:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3643,"<BD><F0><CA><F4><B2><C4><C1><CF>"},    //C6
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:248:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3743,"<BB><FA><U+0435><D2><U+01F1><ED>"},    //C7
+                 ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:249:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3843,"<C9><FA><CE><EF><U+04BD><U+04A9>"},    //C8
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:250:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3943,"<C6><E4><CB><FB><D6><C6><D4><EC>"},    //C9
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:251:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'D',"<B9><A9><U+02EE><B9><A9><B5><E7>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:252:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'E',"<BD><A8><D6><FE><U+04B5>"},
+              ^~~~~~~~~~~~~~~~
+./datacolect.h:253:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'F',"<BD><BB><U+0368><B2><U+05B4><A2>"},
+              ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:254:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'G',"<D0><C5><U+03E2><BC><BC><CA><F5>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:255:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'H',"<C9><CC><U+04B5><U+00F3><D2><D7>"},
+              ^~~~~~~~                ~~~~~~~~
+./datacolect.h:256:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'I',"<BD><F0><C8><U+06B1><A3><CF><D5>"},
+              ^~~~~~~~~~~~        ~~~~~~~~~~~~
+./datacolect.h:257:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'J',"<B7><BF><B5><U+0632><FA>"},
+              ^~~~~~~~~~~~        ~~~~
+./datacolect.h:258:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'K',"<C9><E7><BB><E1><B7><FE><CE><F1>"},
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:259:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'L',"<CE><U+013B><AF><B4><AB><B2><A5>"},
+              ^~~~        ~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:260:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'M',"<D7><U+06FA><CF><C0><E0>"}
+              ^~~~        ~~~~~~~~~~~~
+./datacolect.h:478:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:490:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:570:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+monitor.cc:173:29: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+        ConfigParser config_parser("test.xml");
+                                   ^
+30 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name utils.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/utils-aGcLeb.o -x c++ utils.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from utils.cc:2:
+./datacolect.h:239:10: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'A',"<U+0169><C4><C1><U+04B5>"},
+                      ^~~~~~~~
+./datacolect.h:240:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'B',"<B2><U+027E><F2><U+04B5>"},
+              ^~~~        ~~~~
+./datacolect.h:241:15: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3043,"<U+02B3><U+01B7><D2><FB><C1><CF>"},    //C0
+                                 ^~~~~~~~~~~~~~~~
+./datacolect.h:242:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3143,"<B7><C4><U+05AF><B7><FE><U+05F0>"},    //C1
+                 ^~~~~~~~        ~~~~~~~~
+./datacolect.h:243:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3243,"<U+013E><B2><U+013C><U+04BE><DF>"},    //C2
+                         ^~~~                ~~~~
+./datacolect.h:244:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3343,"<D4><EC><U+05BD><U+04E1><U+02E2>"},    //C3
+                 ^~~~~~~~
+./datacolect.h:245:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3443,"<U+02AF><D3><U+037B><AF><B9><A4>"},    //C4
+                         ^~~~        ~~~~~~~~~~~~
+./datacolect.h:246:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3543,"<B5><E7><D7><D3>"},                //C5
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:247:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3643,"<BD><F0><CA><F4><B2><C4><C1><CF>"},    //C6
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:248:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3743,"<BB><FA><U+0435><D2><U+01F1><ED>"},    //C7
+                 ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:249:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3843,"<C9><FA><CE><EF><U+04BD><U+04A9>"},    //C8
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:250:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3943,"<C6><E4><CB><FB><D6><C6><D4><EC>"},    //C9
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:251:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'D',"<B9><A9><U+02EE><B9><A9><B5><E7>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:252:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'E',"<BD><A8><D6><FE><U+04B5>"},
+              ^~~~~~~~~~~~~~~~
+./datacolect.h:253:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'F',"<BD><BB><U+0368><B2><U+05B4><A2>"},
+              ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:254:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'G',"<D0><C5><U+03E2><BC><BC><CA><F5>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:255:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'H',"<C9><CC><U+04B5><U+00F3><D2><D7>"},
+              ^~~~~~~~                ~~~~~~~~
+./datacolect.h:256:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'I',"<BD><F0><C8><U+06B1><A3><CF><D5>"},
+              ^~~~~~~~~~~~        ~~~~~~~~~~~~
+./datacolect.h:257:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'J',"<B7><BF><B5><U+0632><FA>"},
+              ^~~~~~~~~~~~        ~~~~
+./datacolect.h:258:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'K',"<C9><E7><BB><E1><B7><FE><CE><F1>"},
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:259:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'L',"<CE><U+013B><AF><B4><AB><B2><A5>"},
+              ^~~~        ~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:260:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'M',"<D7><U+06FA><CF><C0><E0>"}
+              ^~~~        ~~~~~~~~~~~~
+./datacolect.h:478:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:490:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:570:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+utils.cc:14:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[FIN]";
+                       ^
+utils.cc:17:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[SYN]";
+                       ^
+utils.cc:20:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[RST]";
+                       ^
+utils.cc:23:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[PSH]";
+                       ^
+utils.cc:26:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[ACK]";
+                       ^
+utils.cc:29:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[FIN,ACK]";
+                       ^
+utils.cc:32:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[SYN,ACK]";
+                       ^
+utils.cc:35:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[RST,ACK]";
+                       ^
+utils.cc:38:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[PSH,ACK]";
+                       ^
+utils.cc:41:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[FIN,PSH,ACK]";
+                       ^
+utils.cc:44:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[URG]";
+                       ^
+utils.cc:47:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "[UNKNOW]";
+                       ^
+utils.cc:75:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_NUL";
+                       ^
+utils.cc:77:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_KEEPALIVE";
+                       ^
+utils.cc:79:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_LOGIN";
+                       ^
+utils.cc:81:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_REQPASS";
+                       ^
+utils.cc:83:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_USERnPASS";
+                       ^
+utils.cc:85:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_READY";
+                       ^
+utils.cc:87:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_RESEND";
+                       ^
+utils.cc:89:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_STKSTATIC";
+                       ^
+utils.cc:91:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_STKDYNA";
+                       ^
+utils.cc:93:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SHL2_MMPEx";
+                       ^
+utils.cc:95:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SHL2_REPORT";
+                       ^
+utils.cc:97:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SHL2_BIG_WD";
+                       ^
+utils.cc:99:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SHL2_ACCU_WD";
+                       ^
+utils.cc:101:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_HK_STATIC";
+                       ^
+utils.cc:103:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_HK_DYNA";
+                       ^
+utils.cc:105:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_XML";
+                       ^
+utils.cc:107:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SHL2_QUEUE";
+                       ^
+utils.cc:109:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_GENERAL";
+                       ^
+utils.cc:111:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_USERSTAT";
+                       ^
+utils.cc:113:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_RAWDATA";
+                       ^
+utils.cc:115:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_NEWS";
+                       ^
+utils.cc:117:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SZL2_ORDER_QUEUE";
+                       ^
+utils.cc:119:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SZL2_ORDER_STAT";
+                       ^
+utils.cc:121:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_DSCRC";
+                       ^
+utils.cc:123:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_DSDID";
+                       ^
+utils.cc:125:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_DSDATA";
+                       ^
+utils.cc:127:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_DID";
+                       ^
+utils.cc:129:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_DIDSTATIC";
+                       ^
+utils.cc:131:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_INCODESTATIC";
+                       ^
+utils.cc:133:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SZL2_ORDER_FIVE";
+                       ^
+utils.cc:135:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "DCT_SZL2_TRADE_FIVE";
+                       ^
+utils.cc:137:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "UNKNOW DC_TYPE";
+                       ^
+utils.cc:146:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "GE_STATIC_EX";
+                       ^
+utils.cc:148:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "GE_HKDYNA";
+                       ^
+utils.cc:150:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "GE_BLK_STK";
+                       ^
+utils.cc:152:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "GE_IOPV";
+                       ^
+utils.cc:154:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "GE_MATU_YLD";
+                       ^
+utils.cc:156:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "GE_HIREL_TXT";
+                       ^
+utils.cc:158:10: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                return "UNKNOW DC_GENERAL INNER TYPE";
+                       ^
+76 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name log.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/log-G3WgTp.o -x c++ log.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from log.cc:1:
+In file included from ./log.h:19:
+./basethread.h:25:15: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+           ~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:25:15: note: place parentheses around the assignment to silence this warning
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+           (                                              )
+./basethread.h:25:15: note: use '==' to turn this assignment into an equality comparison
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+              ==
+./basethread.h:43:16: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err = pthread_join(tid_,&tret))
+           ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:43:16: note: place parentheses around the assignment to silence this warning
+        if(err = pthread_join(tid_,&tret))
+               ^
+           (                             )
+./basethread.h:43:16: note: use '==' to turn this assignment into an equality comparison
+        if(err = pthread_join(tid_,&tret))
+               ^
+               ==
+./basethread.h:54:10: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+                if(err = pthread_cancel(tid_))
+                   ~~~~^~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:54:10: note: place parentheses around the assignment to silence this warning
+                if(err = pthread_cancel(tid_))
+                       ^
+                   (                         )
+./basethread.h:54:10: note: use '==' to turn this assignment into an equality comparison
+                if(err = pthread_cancel(tid_))
+                       ^
+                       ==
+3 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name parse.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/parse-1yTVxE.o -x c++ parse.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from parse.cc:1:
+In file included from ./parse.h:23:
+In file included from ./data.h:4:
+./datacolect.h:239:10: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'A',"<U+0169><C4><C1><U+04B5>"},
+                      ^~~~~~~~
+./datacolect.h:240:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'B',"<B2><U+027E><F2><U+04B5>"},
+              ^~~~        ~~~~
+./datacolect.h:241:15: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3043,"<U+02B3><U+01B7><D2><FB><C1><CF>"},    //C0
+                                 ^~~~~~~~~~~~~~~~
+./datacolect.h:242:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3143,"<B7><C4><U+05AF><B7><FE><U+05F0>"},    //C1
+                 ^~~~~~~~        ~~~~~~~~
+./datacolect.h:243:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3243,"<U+013E><B2><U+013C><U+04BE><DF>"},    //C2
+                         ^~~~                ~~~~
+./datacolect.h:244:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3343,"<D4><EC><U+05BD><U+04E1><U+02E2>"},    //C3
+                 ^~~~~~~~
+./datacolect.h:245:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3443,"<U+02AF><D3><U+037B><AF><B9><A4>"},    //C4
+                         ^~~~        ~~~~~~~~~~~~
+./datacolect.h:246:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3543,"<B5><E7><D7><D3>"},                //C5
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:247:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3643,"<BD><F0><CA><F4><B2><C4><C1><CF>"},    //C6
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:248:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3743,"<BB><FA><U+0435><D2><U+01F1><ED>"},    //C7
+                 ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:249:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3843,"<C9><FA><CE><EF><U+04BD><U+04A9>"},    //C8
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:250:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3943,"<C6><E4><CB><FB><D6><C6><D4><EC>"},    //C9
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:251:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'D',"<B9><A9><U+02EE><B9><A9><B5><E7>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:252:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'E',"<BD><A8><D6><FE><U+04B5>"},
+              ^~~~~~~~~~~~~~~~
+./datacolect.h:253:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'F',"<BD><BB><U+0368><B2><U+05B4><A2>"},
+              ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:254:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'G',"<D0><C5><U+03E2><BC><BC><CA><F5>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:255:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'H',"<C9><CC><U+04B5><U+00F3><D2><D7>"},
+              ^~~~~~~~                ~~~~~~~~
+./datacolect.h:256:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'I',"<BD><F0><C8><U+06B1><A3><CF><D5>"},
+              ^~~~~~~~~~~~        ~~~~~~~~~~~~
+./datacolect.h:257:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'J',"<B7><BF><B5><U+0632><FA>"},
+              ^~~~~~~~~~~~        ~~~~
+./datacolect.h:258:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'K',"<C9><E7><BB><E1><B7><FE><CE><F1>"},
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:259:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'L',"<CE><U+013B><AF><B4><AB><B2><A5>"},
+              ^~~~        ~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:260:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'M',"<D7><U+06FA><CF><C0><E0>"}
+              ^~~~        ~~~~~~~~~~~~
+./datacolect.h:478:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:490:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:570:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+In file included from parse.cc:1:
+In file included from ./parse.h:28:
+./basethread.h:25:15: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+           ~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:25:15: note: place parentheses around the assignment to silence this warning
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+           (                                              )
+./basethread.h:25:15: note: use '==' to turn this assignment into an equality comparison
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+              ==
+./basethread.h:43:16: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err = pthread_join(tid_,&tret))
+           ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:43:16: note: place parentheses around the assignment to silence this warning
+        if(err = pthread_join(tid_,&tret))
+               ^
+           (                             )
+./basethread.h:43:16: note: use '==' to turn this assignment into an equality comparison
+        if(err = pthread_join(tid_,&tret))
+               ^
+               ==
+./basethread.h:54:10: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+                if(err = pthread_cancel(tid_))
+                   ~~~~^~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:54:10: note: place parentheses around the assignment to silence this warning
+                if(err = pthread_cancel(tid_))
+                       ^
+                   (                         )
+./basethread.h:54:10: note: use '==' to turn this assignment into an equality comparison
+                if(err = pthread_cancel(tid_))
+                       ^
+                       ==
+In file included from parse.cc:1:
+In file included from ./parse.h:31:
+./xml_class_set.h:41:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+parse.cc:671:19: warning: conversion from string literal to 'char *' is deprecated [-Wdeprecated-writable-strings]
+                iproto = "TCP";
+                         ^
+30 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name capture_net_packet.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/capture_net_packet-sxCQcT.o -x c++ capture_net_packet.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from capture_net_packet.cc:1:
+In file included from ./capture_net_packet.h:4:
+./basethread.h:25:15: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+           ~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:25:15: note: place parentheses around the assignment to silence this warning
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+           (                                              )
+./basethread.h:25:15: note: use '==' to turn this assignment into an equality comparison
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+              ==
+./basethread.h:43:16: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err = pthread_join(tid_,&tret))
+           ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:43:16: note: place parentheses around the assignment to silence this warning
+        if(err = pthread_join(tid_,&tret))
+               ^
+           (                             )
+./basethread.h:43:16: note: use '==' to turn this assignment into an equality comparison
+        if(err = pthread_join(tid_,&tret))
+               ^
+               ==
+./basethread.h:54:10: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+                if(err = pthread_cancel(tid_))
+                   ~~~~^~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:54:10: note: place parentheses around the assignment to silence this warning
+                if(err = pthread_cancel(tid_))
+                       ^
+                   (                         )
+./basethread.h:54:10: note: use '==' to turn this assignment into an equality comparison
+                if(err = pthread_cancel(tid_))
+                       ^
+                       ==
+3 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name handle_net_packet.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/handle_net_packet-p2fSR7.o -x c++ handle_net_packet.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from handle_net_packet.cc:1:
+In file included from ./handle_net_packet.h:4:
+./basethread.h:25:15: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+           ~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:25:15: note: place parentheses around the assignment to silence this warning
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+           (                                              )
+./basethread.h:25:15: note: use '==' to turn this assignment into an equality comparison
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+              ==
+./basethread.h:43:16: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err = pthread_join(tid_,&tret))
+           ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:43:16: note: place parentheses around the assignment to silence this warning
+        if(err = pthread_join(tid_,&tret))
+               ^
+           (                             )
+./basethread.h:43:16: note: use '==' to turn this assignment into an equality comparison
+        if(err = pthread_join(tid_,&tret))
+               ^
+               ==
+./basethread.h:54:10: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+                if(err = pthread_cancel(tid_))
+                   ~~~~^~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:54:10: note: place parentheses around the assignment to silence this warning
+                if(err = pthread_cancel(tid_))
+                       ^
+                   (                         )
+./basethread.h:54:10: note: use '==' to turn this assignment into an equality comparison
+                if(err = pthread_cancel(tid_))
+                       ^
+                       ==
+In file included from handle_net_packet.cc:1:
+In file included from ./handle_net_packet.h:5:
+./xml_class_set.h:41:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+In file included from handle_net_packet.cc:1:
+In file included from ./handle_net_packet.h:6:
+In file included from ./parse.h:23:
+In file included from ./data.h:4:
+./datacolect.h:239:10: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'A',"<U+0169><C4><C1><U+04B5>"},
+                      ^~~~~~~~
+./datacolect.h:240:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'B',"<B2><U+027E><F2><U+04B5>"},
+              ^~~~        ~~~~
+./datacolect.h:241:15: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3043,"<U+02B3><U+01B7><D2><FB><C1><CF>"},    //C0
+                                 ^~~~~~~~~~~~~~~~
+./datacolect.h:242:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3143,"<B7><C4><U+05AF><B7><FE><U+05F0>"},    //C1
+                 ^~~~~~~~        ~~~~~~~~
+./datacolect.h:243:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3243,"<U+013E><B2><U+013C><U+04BE><DF>"},    //C2
+                         ^~~~                ~~~~
+./datacolect.h:244:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3343,"<D4><EC><U+05BD><U+04E1><U+02E2>"},    //C3
+                 ^~~~~~~~
+./datacolect.h:245:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3443,"<U+02AF><D3><U+037B><AF><B9><A4>"},    //C4
+                         ^~~~        ~~~~~~~~~~~~
+./datacolect.h:246:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3543,"<B5><E7><D7><D3>"},                //C5
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:247:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3643,"<BD><F0><CA><F4><B2><C4><C1><CF>"},    //C6
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:248:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3743,"<BB><FA><U+0435><D2><U+01F1><ED>"},    //C7
+                 ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:249:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3843,"<C9><FA><CE><EF><U+04BD><U+04A9>"},    //C8
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:250:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3943,"<C6><E4><CB><FB><D6><C6><D4><EC>"},    //C9
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:251:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'D',"<B9><A9><U+02EE><B9><A9><B5><E7>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:252:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'E',"<BD><A8><D6><FE><U+04B5>"},
+              ^~~~~~~~~~~~~~~~
+./datacolect.h:253:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'F',"<BD><BB><U+0368><B2><U+05B4><A2>"},
+              ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:254:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'G',"<D0><C5><U+03E2><BC><BC><CA><F5>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:255:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'H',"<C9><CC><U+04B5><U+00F3><D2><D7>"},
+              ^~~~~~~~                ~~~~~~~~
+./datacolect.h:256:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'I',"<BD><F0><C8><U+06B1><A3><CF><D5>"},
+              ^~~~~~~~~~~~        ~~~~~~~~~~~~
+./datacolect.h:257:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'J',"<B7><BF><B5><U+0632><FA>"},
+              ^~~~~~~~~~~~        ~~~~
+./datacolect.h:258:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'K',"<C9><E7><BB><E1><B7><FE><CE><F1>"},
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:259:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'L',"<CE><U+013B><AF><B4><AB><B2><A5>"},
+              ^~~~        ~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:260:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'M',"<D7><U+06FA><CF><C0><E0>"}
+              ^~~~        ~~~~~~~~~~~~
+./datacolect.h:478:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:490:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:570:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+29 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name luaroutine.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/luaroutine-aHo0wm.o -x c++ luaroutine.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from luaroutine.cc:1:
+In file included from ./luaroutine.h:5:
+./basethread.h:25:15: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+           ~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:25:15: note: place parentheses around the assignment to silence this warning
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+           (                                              )
+./basethread.h:25:15: note: use '==' to turn this assignment into an equality comparison
+        if(err= pthread_create(&tid_,NULL,workthread,this))
+              ^
+              ==
+./basethread.h:43:16: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+        if(err = pthread_join(tid_,&tret))
+           ~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:43:16: note: place parentheses around the assignment to silence this warning
+        if(err = pthread_join(tid_,&tret))
+               ^
+           (                             )
+./basethread.h:43:16: note: use '==' to turn this assignment into an equality comparison
+        if(err = pthread_join(tid_,&tret))
+               ^
+               ==
+./basethread.h:54:10: warning: using the result of an assignment as a condition without parentheses [-Wparentheses]
+                if(err = pthread_cancel(tid_))
+                   ~~~~^~~~~~~~~~~~~~~~~~~~~~
+./basethread.h:54:10: note: place parentheses around the assignment to silence this warning
+                if(err = pthread_cancel(tid_))
+                       ^
+                   (                         )
+./basethread.h:54:10: note: use '==' to turn this assignment into an equality comparison
+                if(err = pthread_cancel(tid_))
+                       ^
+                       ==
+In file included from luaroutine.cc:1:
+In file included from ./luaroutine.h:6:
+./xml_class_set.h:41:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+In file included from luaroutine.cc:1:
+In file included from ./luaroutine.h:8:
+./datacolect.h:239:10: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'A',"<U+0169><C4><C1><U+04B5>"},
+                      ^~~~~~~~
+./datacolect.h:240:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'B',"<B2><U+027E><F2><U+04B5>"},
+              ^~~~        ~~~~
+./datacolect.h:241:15: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3043,"<U+02B3><U+01B7><D2><FB><C1><CF>"},    //C0
+                                 ^~~~~~~~~~~~~~~~
+./datacolect.h:242:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3143,"<B7><C4><U+05AF><B7><FE><U+05F0>"},    //C1
+                 ^~~~~~~~        ~~~~~~~~
+./datacolect.h:243:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3243,"<U+013E><B2><U+013C><U+04BE><DF>"},    //C2
+                         ^~~~                ~~~~
+./datacolect.h:244:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3343,"<D4><EC><U+05BD><U+04E1><U+02E2>"},    //C3
+                 ^~~~~~~~
+./datacolect.h:245:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3443,"<U+02AF><D3><U+037B><AF><B9><A4>"},    //C4
+                         ^~~~        ~~~~~~~~~~~~
+./datacolect.h:246:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3543,"<B5><E7><D7><D3>"},                //C5
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:247:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3643,"<BD><F0><CA><F4><B2><C4><C1><CF>"},    //C6
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:248:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3743,"<BB><FA><U+0435><D2><U+01F1><ED>"},    //C7
+                 ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:249:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3843,"<C9><FA><CE><EF><U+04BD><U+04A9>"},    //C8
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:250:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3943,"<C6><E4><CB><FB><D6><C6><D4><EC>"},    //C9
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:251:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'D',"<B9><A9><U+02EE><B9><A9><B5><E7>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:252:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'E',"<BD><A8><D6><FE><U+04B5>"},
+              ^~~~~~~~~~~~~~~~
+./datacolect.h:253:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'F',"<BD><BB><U+0368><B2><U+05B4><A2>"},
+              ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:254:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'G',"<D0><C5><U+03E2><BC><BC><CA><F5>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:255:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'H',"<C9><CC><U+04B5><U+00F3><D2><D7>"},
+              ^~~~~~~~                ~~~~~~~~
+./datacolect.h:256:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'I',"<BD><F0><C8><U+06B1><A3><CF><D5>"},
+              ^~~~~~~~~~~~        ~~~~~~~~~~~~
+./datacolect.h:257:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'J',"<B7><BF><B5><U+0632><FA>"},
+              ^~~~~~~~~~~~        ~~~~
+./datacolect.h:258:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'K',"<C9><E7><BB><E1><B7><FE><CE><F1>"},
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:259:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'L',"<CE><U+013B><AF><B4><AB><B2><A5>"},
+              ^~~~        ~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:260:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'M',"<D7><U+06FA><CF><C0><E0>"}
+              ^~~~        ~~~~~~~~~~~~
+./datacolect.h:478:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:490:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:570:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+29 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name configparser.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/configparser-VtXecB.o -x c++ configparser.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from configparser.cc:1:
+In file included from ./configparser.h:4:
+./xml_class_set.h:41:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+1 warning generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name DIDTemplateToLuaStruct.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/DIDTemplateToLuaStruct-kxBARP.o -x c++ DIDTemplateToLuaStruct.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from DIDTemplateToLuaStruct.cc:1:
+In file included from ./DIDTemplateToLuaStruct.h:6:
+./xml_class_set.h:41:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+1 warning generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name bitstream.cpp -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/bitstream-JIG2w4.o -x c++ bitstream.cpp
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name crc16.cpp -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/crc16-WJcBcj.o -x c++ crc16.cpp
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name mword.cpp -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/mword-vo8fSx.o -x c++ mword.cpp
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name extract_dc.cc -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/extract_dc-2Xu1xM.o -x c++ extract_dc.cc
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from extract_dc.cc:1:
+In file included from ./extract_dc.h:8:
+In file included from ./data.h:4:
+./datacolect.h:239:10: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'A',"<U+0169><C4><C1><U+04B5>"},
+                      ^~~~~~~~
+./datacolect.h:240:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'B',"<B2><U+027E><F2><U+04B5>"},
+              ^~~~        ~~~~
+./datacolect.h:241:15: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3043,"<U+02B3><U+01B7><D2><FB><C1><CF>"},    //C0
+                                 ^~~~~~~~~~~~~~~~
+./datacolect.h:242:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3143,"<B7><C4><U+05AF><B7><FE><U+05F0>"},    //C1
+                 ^~~~~~~~        ~~~~~~~~
+./datacolect.h:243:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3243,"<U+013E><B2><U+013C><U+04BE><DF>"},    //C2
+                         ^~~~                ~~~~
+./datacolect.h:244:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3343,"<D4><EC><U+05BD><U+04E1><U+02E2>"},    //C3
+                 ^~~~~~~~
+./datacolect.h:245:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3443,"<U+02AF><D3><U+037B><AF><B9><A4>"},    //C4
+                         ^~~~        ~~~~~~~~~~~~
+./datacolect.h:246:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3543,"<B5><E7><D7><D3>"},                //C5
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:247:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3643,"<BD><F0><CA><F4><B2><C4><C1><CF>"},    //C6
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:248:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3743,"<BB><FA><U+0435><D2><U+01F1><ED>"},    //C7
+                 ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:249:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3843,"<C9><FA><CE><EF><U+04BD><U+04A9>"},    //C8
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:250:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3943,"<C6><E4><CB><FB><D6><C6><D4><EC>"},    //C9
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:251:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'D',"<B9><A9><U+02EE><B9><A9><B5><E7>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:252:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'E',"<BD><A8><D6><FE><U+04B5>"},
+              ^~~~~~~~~~~~~~~~
+./datacolect.h:253:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'F',"<BD><BB><U+0368><B2><U+05B4><A2>"},
+              ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:254:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'G',"<D0><C5><U+03E2><BC><BC><CA><F5>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:255:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'H',"<C9><CC><U+04B5><U+00F3><D2><D7>"},
+              ^~~~~~~~                ~~~~~~~~
+./datacolect.h:256:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'I',"<BD><F0><C8><U+06B1><A3><CF><D5>"},
+              ^~~~~~~~~~~~        ~~~~~~~~~~~~
+./datacolect.h:257:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'J',"<B7><BF><B5><U+0632><FA>"},
+              ^~~~~~~~~~~~        ~~~~
+./datacolect.h:258:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'K',"<C9><E7><BB><E1><B7><FE><CE><F1>"},
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:259:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'L',"<CE><U+013B><AF><B4><AB><B2><A5>"},
+              ^~~~        ~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:260:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'M',"<D7><U+06FA><CF><C0><E0>"}
+              ^~~~        ~~~~~~~~~~~~
+./datacolect.h:478:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:490:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:570:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+25 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name generalcps.cpp -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/generalcps-v3hTd1.o -x c++ generalcps.cpp
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from generalcps.cpp:2:
+./datacolect.h:239:10: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'A',"<U+0169><C4><C1><U+04B5>"},
+                      ^~~~~~~~
+./datacolect.h:240:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'B',"<B2><U+027E><F2><U+04B5>"},
+              ^~~~        ~~~~
+./datacolect.h:241:15: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3043,"<U+02B3><U+01B7><D2><FB><C1><CF>"},    //C0
+                                 ^~~~~~~~~~~~~~~~
+./datacolect.h:242:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3143,"<B7><C4><U+05AF><B7><FE><U+05F0>"},    //C1
+                 ^~~~~~~~        ~~~~~~~~
+./datacolect.h:243:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3243,"<U+013E><B2><U+013C><U+04BE><DF>"},    //C2
+                         ^~~~                ~~~~
+./datacolect.h:244:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3343,"<D4><EC><U+05BD><U+04E1><U+02E2>"},    //C3
+                 ^~~~~~~~
+./datacolect.h:245:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3443,"<U+02AF><D3><U+037B><AF><B9><A4>"},    //C4
+                         ^~~~        ~~~~~~~~~~~~
+./datacolect.h:246:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3543,"<B5><E7><D7><D3>"},                //C5
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:247:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3643,"<BD><F0><CA><F4><B2><C4><C1><CF>"},    //C6
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:248:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3743,"<BB><FA><U+0435><D2><U+01F1><ED>"},    //C7
+                 ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:249:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3843,"<C9><FA><CE><EF><U+04BD><U+04A9>"},    //C8
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:250:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3943,"<C6><E4><CB><FB><D6><C6><D4><EC>"},    //C9
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:251:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'D',"<B9><A9><U+02EE><B9><A9><B5><E7>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:252:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'E',"<BD><A8><D6><FE><U+04B5>"},
+              ^~~~~~~~~~~~~~~~
+./datacolect.h:253:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'F',"<BD><BB><U+0368><B2><U+05B4><A2>"},
+              ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:254:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'G',"<D0><C5><U+03E2><BC><BC><CA><F5>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:255:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'H',"<C9><CC><U+04B5><U+00F3><D2><D7>"},
+              ^~~~~~~~                ~~~~~~~~
+./datacolect.h:256:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'I',"<BD><F0><C8><U+06B1><A3><CF><D5>"},
+              ^~~~~~~~~~~~        ~~~~~~~~~~~~
+./datacolect.h:257:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'J',"<B7><BF><B5><U+0632><FA>"},
+              ^~~~~~~~~~~~        ~~~~
+./datacolect.h:258:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'K',"<C9><E7><BB><E1><B7><FE><CE><F1>"},
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:259:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'L',"<CE><U+013B><AF><B4><AB><B2><A5>"},
+              ^~~~        ~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:260:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'M',"<D7><U+06FA><CF><C0><E0>"}
+              ^~~~        ~~~~~~~~~~~~
+./datacolect.h:478:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:490:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:570:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+25 warnings generated.
+ "/usr/local/bin/clang" -cc1 -triple i386-pc-linux-gnu -emit-obj -mrelax-all -disable-free -main-file-name l2compress.cpp -mrelocation-model static -mdisable-fp-elim -fmath-errno -masm-verbose -mconstructor-aliases -target-cpu pentium4 -target-linker-version 2.22 -v -g -resource-dir /usr/local/bin/../lib/clang/3.3 -I /usr/include/libxml2 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6 -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward -internal-isystem /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6 -internal-isystem /usr/local/include -internal-isystem /usr/local/bin/../lib/clang/3.3/include -internal-externc-isystem /usr/include/i386-linux-gnu -internal-externc-isystem /include -internal-externc-isystem /usr/include -fdeprecated-macro -fdebug-compilation-dir /home/yison/projects/monitor_linux -ferror-limit 19 -fmessage-length 0 -fsanitize=address,init-order -mstackrealign -fobjc-runtime=gcc -fobjc-default-synthesize-properties -fcxx-exceptions -fexceptions -fdiagnostics-show-option -backend-option -vectorize-loops -o /tmp/l2compress-EMsRTf.o -x c++ l2compress.cpp
+clang -cc1 version 3.3 based upon LLVM 3.3 default target i386-pc-linux-gnu
+ignoring nonexistent directory "/usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/i686-linux-gnu/c++/4.6"
+ignoring nonexistent directory "/include"
+#include "..." search starts here:
+#include <...> search starts here:
+ /usr/include/libxml2
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/i686-linux-gnu
+ /usr/lib/gcc/i686-linux-gnu/4.6/../../../../include/c++/4.6/backward
+ /usr/local/include
+ /usr/local/bin/../lib/clang/3.3/include
+ /usr/include/i386-linux-gnu
+ /usr/include
+End of search list.
+In file included from l2compress.cpp:2:
+./datacolect.h:239:10: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'A',"<U+0169><C4><C1><U+04B5>"},
+                      ^~~~~~~~
+./datacolect.h:240:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'B',"<B2><U+027E><F2><U+04B5>"},
+              ^~~~        ~~~~
+./datacolect.h:241:15: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3043,"<U+02B3><U+01B7><D2><FB><C1><CF>"},    //C0
+                                 ^~~~~~~~~~~~~~~~
+./datacolect.h:242:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3143,"<B7><C4><U+05AF><B7><FE><U+05F0>"},    //C1
+                 ^~~~~~~~        ~~~~~~~~
+./datacolect.h:243:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3243,"<U+013E><B2><U+013C><U+04BE><DF>"},    //C2
+                         ^~~~                ~~~~
+./datacolect.h:244:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3343,"<D4><EC><U+05BD><U+04E1><U+02E2>"},    //C3
+                 ^~~~~~~~
+./datacolect.h:245:13: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3443,"<U+02AF><D3><U+037B><AF><B9><A4>"},    //C4
+                         ^~~~        ~~~~~~~~~~~~
+./datacolect.h:246:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3543,"<B5><E7><D7><D3>"},                //C5
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:247:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3643,"<BD><F0><CA><F4><B2><C4><C1><CF>"},    //C6
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:248:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3743,"<BB><FA><U+0435><D2><U+01F1><ED>"},    //C7
+                 ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:249:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3843,"<C9><FA><CE><EF><U+04BD><U+04A9>"},    //C8
+                 ^~~~~~~~~~~~~~~~
+./datacolect.h:250:11: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {0x3943,"<C6><E4><CB><FB><D6><C6><D4><EC>"},    //C9
+                 ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:251:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'D',"<B9><A9><U+02EE><B9><A9><B5><E7>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:252:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'E',"<BD><A8><D6><FE><U+04B5>"},
+              ^~~~~~~~~~~~~~~~
+./datacolect.h:253:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'F',"<BD><BB><U+0368><B2><U+05B4><A2>"},
+              ^~~~~~~~        ~~~~        ~~~~
+./datacolect.h:254:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'G',"<D0><C5><U+03E2><BC><BC><CA><F5>"},
+              ^~~~~~~~        ~~~~~~~~~~~~~~~~
+./datacolect.h:255:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'H',"<C9><CC><U+04B5><U+00F3><D2><D7>"},
+              ^~~~~~~~                ~~~~~~~~
+./datacolect.h:256:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'I',"<BD><F0><C8><U+06B1><A3><CF><D5>"},
+              ^~~~~~~~~~~~        ~~~~~~~~~~~~
+./datacolect.h:257:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'J',"<B7><BF><B5><U+0632><FA>"},
+              ^~~~~~~~~~~~        ~~~~
+./datacolect.h:258:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'K',"<C9><E7><BB><E1><B7><FE><CE><F1>"},
+              ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:259:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'L',"<CE><U+013B><AF><B4><AB><B2><A5>"},
+              ^~~~        ~~~~~~~~~~~~~~~~~~~~
+./datacolect.h:260:8: warning: illegal character encoding in string literal [-Winvalid-source-encoding]
+        {'M',"<D7><U+06FA><CF><C0><E0>"}
+              ^~~~        ~~~~~~~~~~~~
+./datacolect.h:478:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:490:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+./datacolect.h:570:2: warning: control may reach end of non-void function [-Wreturn-type]
+        }
+        ^
+25 warnings generated.
+ "/usr/bin/ld" -whole-archive /usr/local/bin/../lib/clang/3.3/lib/linux/libclang_rt.asan-i386.a -no-whole-archive -z relro --hash-style=gnu --build-id --eh-frame-hdr -m elf_i386 -dynamic-linker /lib/ld-linux.so.2 -o monitor /usr/lib/gcc/i686-linux-gnu/4.6/../../../i386-linux-gnu/crt1.o /usr/lib/gcc/i686-linux-gnu/4.6/../../../i386-linux-gnu/crti.o /usr/lib/gcc/i686-linux-gnu/4.6/crtbegin.o -L/usr/lib/gcc/i686-linux-gnu/4.6 -L/usr/lib/gcc/i686-linux-gnu/4.6/../../../i386-linux-gnu -L/lib/i386-linux-gnu -L/usr/lib/i386-linux-gnu -L/usr/lib/gcc/i686-linux-gnu/4.6/../../.. -L/lib -L/usr/lib /tmp/monitor-m5NqAW.o /tmp/utils-aGcLeb.o /tmp/log-G3WgTp.o /tmp/parse-1yTVxE.o /tmp/capture_net_packet-sxCQcT.o /tmp/handle_net_packet-p2fSR7.o /tmp/luaroutine-aHo0wm.o /tmp/configparser-VtXecB.o /tmp/DIDTemplateToLuaStruct-kxBARP.o /tmp/bitstream-JIG2w4.o /tmp/crc16-WJcBcj.o /tmp/mword-vo8fSx.o /tmp/extract_dc-2Xu1xM.o /tmp/generalcps-v3hTd1.o /tmp/l2compress-EMsRTf.o -lpcap -lpthread -llog4cpp -lzmq -lluajit-5.1 -lxml2 -lpthread -lrt -ldl -export-dynamic -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/i686-linux-gnu/4.6/crtend.o /usr/lib/gcc/i686-linux-gnu/4.6/../../../i386-linux-gnu/crtn.o

@@ -63,7 +63,7 @@ void LuaRoutine::InitZMQ()
 {
 	assert(-1 != this->zmqitems_[0].zmqpattern);
 	sock_ = new zmq::socket_t(*context_,this->zmqitems_[0].zmqpattern);
-	sock_->setsockopt(ZMQ_RCVHWM, &ZMQ_RCVHWM_SIZE, sizeof(ZMQ_RCVHWM_SIZE));
+	//sock_->setsockopt(ZMQ_RCVHWM, &ZMQ_RCVHWM_SIZE, sizeof(ZMQ_RCVHWM_SIZE));
     if("bind" == this->zmqitems_[0].zmqsocketaction)
     {
         sock_->bind(this->zmqitems_[0].zmqsocketaddr.c_str());
@@ -124,37 +124,64 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 		}
 	}
 	//static or dyna
-	else if (DCT_STKSTATIC == dc_type || DCT_STKDYNA == dc_type || DCT_SHL2_MMPEx == dc_type )
+	else if (	DCT_STKSTATIC == dc_type || \
+				DCT_STKDYNA == dc_type || \
+				DCT_SHL2_MMPEx == dc_type || \
+				DCT_SZL2_ORDER_STAT == dc_type || \
+				DCT_SZL2_ORDER_FIVE == dc_type || \
+				DCT_SZL2_TRADE_FIVE == dc_type)
 	{
 		//working_lua
-		int countlua = 0;
-		for(int i=0;i<stk_num;i++)
-		{
-			count_pack += 1;
-			//count_pack += stk_num*struct_size;
-			lua_getglobal(lua_state_,"process");
-			lua_pushinteger(lua_state_, dc_type);
-			lua_pushlightuserdata(lua_state_,pdcdata+struct_size * i);
-			//Sleep(50);
-			if(lua_pcall(lua_state_,2,0,0) != 0)
-			{
-				string s = lua_tostring(lua_state_,-1);
-				std::cout<<s<<endl;
-				lua_pop(lua_state_,-1);
-				lua_close(lua_state_);
-			}
-			else
-			{
-				//const char * lua_ret = lua_tostring(lua_state_,-1);
-				//int stkid = lua_tonumber(lua_state_, -2);
-				//if(NULL != lua_ret)
-				//{
-				//	//cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
-				//	//DispatchToMonitor(stkid, lua_ret);
-				//}
-				lua_pop(lua_state_,-1);
-			}
-		}
+		//for(int i=0;i<stk_num;i++)
+		//{
+		//	count_pack += 1;
+		//	//count_pack += stk_num*struct_size;
+		//	lua_getglobal(lua_state_,"process");
+		//	lua_pushinteger(lua_state_, dc_type);
+		//	lua_pushlightuserdata(lua_state_,pdcdata+struct_size * i);
+		//	//Sleep(50);
+		//	if(lua_pcall(lua_state_,2,0,0) != 0)
+		//	{
+		//		string s = lua_tostring(lua_state_,-1);
+		//		std::cout<<s<<endl;
+		//		lua_pop(lua_state_,-1);
+		//		lua_close(lua_state_);
+		//	}
+		//	else
+		//	{
+		//		//const char * lua_ret = lua_tostring(lua_state_,-1);
+		//		//int stkid = lua_tonumber(lua_state_, -2);
+		//		//if(NULL != lua_ret)
+		//		//{
+		//		//	//cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
+		//		//	//DispatchToMonitor(stkid, lua_ret);
+		//		//}
+		//		lua_pop(lua_state_,-1);
+		//	}
+		//}
+		count_pack += 1;
+        lua_getglobal(lua_state_,"test_process");
+        lua_pushinteger(lua_state_, dc_type);
+        lua_pushinteger(lua_state_, stk_num);
+        lua_pushlightuserdata(lua_state_,pdcdata);
+        if(lua_pcall(lua_state_,3,0,0) != 0)
+        {
+            string s = lua_tostring(lua_state_,-1);
+            std::cout<<s<<endl;
+            lua_pop(lua_state_,-1);
+            lua_close(lua_state_);
+        }
+        else
+        {
+            //const char * lua_ret = lua_tostring(lua_state,-1);
+            //int stkid = lua_tonumber(lua_state, -2);
+            //if(NULL != lua_ret)
+            {
+              //cout<<"lua stkid:"<<stkid<<"  lua_ret:"<<lua_ret<<endl;
+              //DispatchToMonitor(stkid, lua_ret);
+            }
+            lua_pop(lua_state_,-1);
+        }
 	}
 	else if(DCT_GENERAL == dc_type)
 	{
@@ -207,31 +234,36 @@ void LuaRoutine::DispatchToLua(unsigned char * pdcdata, int dc_type,int dc_gener
 
 void * LuaRoutine::RunThreadFunc()
 {
-	unsigned char * pdata = (unsigned char *)malloc(2000*sizeof(struct STK_STATIC));
-	struct STK_STATIC stk_static;
-	stk_static.m_wStkID = 1;
-	memset(stk_static.m_strLabel, 0, sizeof(stk_static.m_strLabel));
-	memcpy(stk_static.m_strlable, "fdafsdf",5);
-	memset(stk_static.m_strName, 0, sizeof(stk_static.m_strName));
-	memcpy(stk_static.m_strName,"hhhhh",3);
-	stk_static.m_cType = DC_TYPE::DCT_STKSTATIC;
-	stk_static.m_nPriceDigit = '1';
-	stk_static.m_nVolUnit = 321;
-	stk_static.m_mFloatIssued = 134;
-	stk_static.m_mTotalIssued = 321;
-	stk_static.m_dwLastClose = 4324;
-	stk_static.m_dwAdvStop = 432;
-	stk_static.m_dwDecStop = 23423;
+	//unsigned char * pdata = (unsigned char *)malloc(2000*sizeof(struct STK_STATIC));
+	//memset(pdata, 0, 2000*sizeof(struct STK_STATIC));
+	//struct STK_STATIC stk_static;
+	//memset(stk_static.m_strLabel, 0, sizeof(stk_static.m_strLabel));
+	//memcpy(stk_static.m_strLabel, "fdafsdf",5);
+	//memset(stk_static.m_strName, 0, sizeof(stk_static.m_strName));
+	//memcpy(stk_static.m_strName,"hhhhh",3);
+	//stk_static.m_cType = DCT_STKSTATIC;
+	//stk_static.m_nPriceDigit = '1';
+	//stk_static.m_nVolUnit = 321;
+	//stk_static.m_mFloatIssued = 134;
+	//stk_static.m_mTotalIssued = 321;
+	//stk_static.m_dwLastClose = 4324;
+	//stk_static.m_dwAdvStop = 432;
+	//stk_static.m_dwDecStop = 23423;
+	//struct STK_STATIC *p = (struct STK_STATIC *)pdata; 
 
+	//for(int i=0;i<2000;i++)
+	//{
+	//	memcpy(p+i,(unsigned char *)&stk_static,sizeof(stk_static));	
+	//}
 	
-    signal(SIGALRM, PrintCountInfo);
-    tick.it_value.tv_sec = 10;
-    tick.it_value.tv_usec = 0;
+    //signal(SIGALRM, PrintCountInfo);
+    //tick.it_value.tv_sec = 10;
+    //tick.it_value.tv_usec = 0;
 
-    tick.it_interval.tv_sec = 60;
-    tick.it_interval.tv_usec = 0;
+    //tick.it_interval.tv_sec = 60;
+    //tick.it_interval.tv_usec = 0;
 
-    setitimer(ITIMER_REAL,&tick,NULL);
+    //setitimer(ITIMER_REAL,&tick,NULL);
 
 	zmq::message_t msg_rcv(sizeof(Lua_ZMQ_MSG_Item));
 	while(true)
@@ -240,6 +272,9 @@ void * LuaRoutine::RunThreadFunc()
 		sock_->recv(&msg_rcv);
 		Lua_ZMQ_MSG_Item *msg_item = (Lua_ZMQ_MSG_Item*)(msg_rcv.data());
 		stk_static_ = msg_item->stk_static;
+		//free(msg_item->pdcdata);
+		//msg_item->pdcdata = NULL;
 		DispatchToLua(msg_item->pdcdata, msg_item->dc_type, msg_item->dc_general_intype, msg_item->stk_num, msg_item->struct_size, msg_item->did_template_id);
+		//DispatchToLua(pdata, DCT_STKSTATIC, 0, 2000, sizeof(stk_static), 0);
 	}
 }

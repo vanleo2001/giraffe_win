@@ -4,7 +4,7 @@
 #include <pthread.h>
 #include <iostream>
 #include <deque>
-#include <zmq.hpp>
+#include "zmq.hpp"
 #include "pcap/pcap.h"
 #include "log4cpp/Category.hh"
 #include "flags.h"

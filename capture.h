@@ -1,7 +1,7 @@
 #ifndef MONITOR_CAPTURE_H
 #define  MONITOR_CAPTURE_H
 #include <stack>
-#include <zmq.hpp>
+#include "zmq.hpp"
 #include "basethread.h"
 #include "xml_class_set.h"
 #include "parse.h"

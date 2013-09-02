@@ -123,17 +123,17 @@ int ExtractDC::ExtractData(int dc_type, const unsigned char *pbufsrc, int bufsiz
 				nRet = 0;
 		}
 		break;
-	//case DCT_SZL2_ORDER_STAT:
-	//	{
-//			DC_SZL2_ORDER_STAT* pStat = (DC_SZL2_ORDER_STAT*)pbufdes;
-//			nSize = bufsizedes;
-//			nNum = ExpandL2OrderStat(pbufsrc,bufsizesrc,wMarket,pStat,nSize);
-//			if(nNum>0)
-//				nRet = nSize;
-//			else
-//				nRet = 0;
-		//}
-		//break;
+	case DCT_SZL2_ORDER_STAT:
+		{
+			DC_SZL2_ORDER_STAT* pStat = (DC_SZL2_ORDER_STAT*)pbufdes;
+			nSize = bufsizedes;
+			nNum = ExpandL2OrderStat(pbufsrc,bufsizesrc,pStat,nSize);
+			if(nNum>0)
+				nRet = nSize;
+			else
+				nRet = 0;
+		}
+		break;
 	default:
 		break;
 	}

@@ -157,6 +157,12 @@ struct DC_SHL2_ACCU_WD_MY
 	short	m_nNum;			//数量
 };
 
+struct DC_SZL2_ORDER_STAT_MY
+{
+	short m_nNum;
+	time_t m_time;
+};
+
 struct DC_GENERAL_MY
 {
 	WORD	m_wDataID;			//数据ID

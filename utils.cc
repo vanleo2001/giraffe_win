@@ -116,7 +116,7 @@ char * Utils::DCTypeToString(int dc_type)
 	case DCT_SZL2_ORDER_QUEUE:
 		return "DCT_SZL2_ORDER_QUEUE";
 	case DCT_SZL2_ORDER_STAT:
-		return "DCT_SZL2_ORDER_QUEUE";
+		return "DCT_SZL2_ORDER_STAT";
 	case DCT_DSCRC:
 		return "DCT_DSCRC";
 	case DCT_DSDID:
@@ -129,10 +129,10 @@ char * Utils::DCTypeToString(int dc_type)
 		return "DCT_DIDSTATIC";
 	case DCT_INCODESTATIC:
 		return "DCT_INCODESTATIC";
-	case DCT_SZL2_FULL_ORDER:
-		return "DCT_SZL2_FULL_ORDER";
-	case DCT_SZL2_FULL_TRADE:
-		return "DCT_SZL2_FULL_TRADE";
+	case DCT_SZL2_ORDER_FIVE:
+		return "DCT_SZL2_ORDER_FIVE";
+	case DCT_SZL2_TRADE_FIVE:
+		return "DCT_SZL2_TRADE_FIVE";
 	default:
 		return "UNKNOW DC_TYPE";
 	}

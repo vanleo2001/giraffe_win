@@ -36,7 +36,7 @@ void CreateThreadKey()
 void HandleNetPacket::Init()
 {
 	sock_ = new zmq::socket_t (*context_, this->zmqitems_[0].zmqpattern);
-	sock_->setsockopt(ZMQ_RCVHWM, &ZMQ_RCVHWM_SIZE, sizeof(ZMQ_RCVHWM_SIZE));
+	//sock_->setsockopt(ZMQ_RCVHWM, &ZMQ_RCVHWM_SIZE, sizeof(ZMQ_RCVHWM_SIZE));
 	if("bind" == this->zmqitems_[0].zmqsocketaction)
 	{
 		sock_->bind(this->zmqitems_[0].zmqsocketaddr.c_str());
@@ -299,6 +299,7 @@ void * HandleNetPacket::RunThreadFunc()
     //tick.it_interval.tv_usec = 0;
 
     //setitimer(ITIMER_REAL,&tick,NULL);
+	
 
 	int acktag = 0;
 	int fintag = 0;
@@ -430,6 +431,7 @@ void * HandleNetPacket::RunThreadFunc()
 			delete[] pkt_data;
 			pkt_data = NULL;
 		}
+				
 	}
 	return ((void *)0);
 }

@@ -1,0 +1,4 @@
+1. eth0 (No description)
+2. any (Pseudo-device that captures on all interfaces)
+3. lo (No description)
+Please input the number of adapter you choose:

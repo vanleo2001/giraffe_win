@@ -44,7 +44,7 @@ void ConfigParser::Parse()
 	for(int i=0; i<listeningitem_nodeset->nodeNr; i++)
 	{
 		xmlNodePtr listeningitem_node =config.get_node(listeningitem_nodeset,i);
-		int port = config.get_prop_int(listeningitem_node,"port",NULL);
+		int port = config.get_prop_int(listeningitem_node,"port",0);
 		ports_.push_back(port);
 		std::string filter;
 		config.get_prop_string(listeningitem_node,"filter",filter,NULL);

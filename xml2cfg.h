@@ -8,6 +8,7 @@
 #include <libxml/parser.h>
 #include <libxml/xpath.h>
 #include <libxml/xpathInternals.h>
+#include <errno.h>
 
 using namespace std;
 

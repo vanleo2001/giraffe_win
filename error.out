@@ -1,0 +1,48 @@
+./monitor: /usr/lib/libxml2.so.2: no version information available (required by ./monitor)
+1. eth0 (No description)
+2. any (Pseudo-device that captures on all interfaces)
+3. lo (No description)
+Please input the number of adapter you choose:
+1
+tcp and port 22224
+thread_nodeset:4
+CaptureNetPacket
+zmqnodeset:1
+HandleNetPacket
+zmqnodeset:2
+LuaRoutine
+zmqnodeset:1
+Parse
+zmqnodeset:3
+complete the initialization!
+A new connection was been built! The ip and port is:127.0.0.1:45773
+connection:key_ip:127.0.0.1:45773
+=================================================================
+==18897==ERROR: AddressSanitizer: alloc-dealloc-mismatch (operator new [] vs operator delete) on 0xb6736800
+    #0 0x808e3a5 in ?? ??:0
+    #1 0x816f7a8 in ?? ??:0
+    #2 0x817beda in ?? ??:0
+    #3 0x813db4c in ?? ??:0
+    #4 0x813d959 in ?? ??:0
+    #5 0x8095686 in ?? ??:0
+0xb6736800 is located 0 bytes inside of 187476-byte region [0xb6736800,0xb6764454)
+allocated by thread T6 here:
+    #0 0x808e225 in ?? ??:0
+    #1 0x816f53a in ?? ??:0
+    #2 0x817beda in ?? ??:0
+    #3 0x813db4c in ?? ??:0
+    #4 0x813d959 in ?? ??:0
+    #5 0x8095686 in ?? ??:0
+Thread T6 created by T0 here:
+    #0 0x8088ee8 in ?? ??:0
+    #1 0x813d5cd in ?? ??:0
+    #2 0x80a5d63 in ?? ??:0
+    #3 0x81a09d2 in ?? ??:0
+    #4 0x819d3fd in ?? ??:0
+    #5 0x819ce08 in ?? ??:0
+    #6 0x80a2f0b in ?? ??:0
+    #7 0x80a3de0 in ?? ??:0
+    #8 0x81aebb in ?? ??:0
+    #9 0x809efc4 in ?? ??:0
+==18897==HINT: if you don't care about these warnings you may set ASAN_OPTIONS=alloc_dealloc_mismatch=0
+==18897==ABORTING

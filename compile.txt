@@ -1,0 +1,164 @@
+monitor.cc: In function 'int main()':
+monitor.cc:173:39: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+  ConfigParser config_parser("test.xml");
+                                       ^
+utils.cc: In static member function 'static char* Utils::tcp_flag_to_str(unsigned char)':
+utils.cc:14:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[FIN]";
+          ^
+utils.cc:17:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[SYN]";
+          ^
+utils.cc:20:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[RST]";
+          ^
+utils.cc:23:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[PSH]";
+          ^
+utils.cc:26:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[ACK]";
+          ^
+utils.cc:29:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[FIN,ACK]";
+          ^
+utils.cc:32:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[SYN,ACK]";
+          ^
+utils.cc:35:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[RST,ACK]";
+          ^
+utils.cc:38:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[PSH,ACK]";
+          ^
+utils.cc:41:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[FIN,PSH,ACK]";
+          ^
+utils.cc:44:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[URG]";
+          ^
+utils.cc:47:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "[UNKNOW]";
+          ^
+utils.cc: In static member function 'static char* Utils::DCTypeToString(int)':
+utils.cc:75:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_NUL";
+          ^
+utils.cc:77:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_KEEPALIVE";
+          ^
+utils.cc:79:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_LOGIN";
+          ^
+utils.cc:81:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_REQPASS";
+          ^
+utils.cc:83:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_USERnPASS";
+          ^
+utils.cc:85:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_READY";
+          ^
+utils.cc:87:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_RESEND";
+          ^
+utils.cc:89:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_STKSTATIC";
+          ^
+utils.cc:91:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_STKDYNA";
+          ^
+utils.cc:93:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SHL2_MMPEx";
+          ^
+utils.cc:95:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SHL2_REPORT";
+          ^
+utils.cc:97:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SHL2_BIG_WD";
+          ^
+utils.cc:99:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SHL2_ACCU_WD";
+          ^
+utils.cc:101:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_HK_STATIC";
+          ^
+utils.cc:103:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_HK_DYNA";
+          ^
+utils.cc:105:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_XML";
+          ^
+utils.cc:107:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SHL2_QUEUE";
+          ^
+utils.cc:109:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_GENERAL";
+          ^
+utils.cc:111:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_USERSTAT";
+          ^
+utils.cc:113:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_RAWDATA";
+          ^
+utils.cc:115:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_NEWS";
+          ^
+utils.cc:117:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SZL2_ORDER_QUEUE";
+          ^
+utils.cc:119:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SZL2_ORDER_STAT";
+          ^
+utils.cc:121:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_DSCRC";
+          ^
+utils.cc:123:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_DSDID";
+          ^
+utils.cc:125:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_DSDATA";
+          ^
+utils.cc:127:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_DID";
+          ^
+utils.cc:129:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_DIDSTATIC";
+          ^
+utils.cc:131:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_INCODESTATIC";
+          ^
+utils.cc:133:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SZL2_ORDER_FIVE";
+          ^
+utils.cc:135:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "DCT_SZL2_TRADE_FIVE";
+          ^
+utils.cc:137:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "UNKNOW DC_TYPE";
+          ^
+utils.cc: In static member function 'static char* Utils::DCGeneral_IntypeToString(int)':
+utils.cc:146:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "GE_STATIC_EX";
+          ^
+utils.cc:148:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "GE_HKDYNA";
+          ^
+utils.cc:150:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "GE_BLK_STK";
+          ^
+utils.cc:152:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "GE_IOPV";
+          ^
+utils.cc:154:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "GE_MATU_YLD";
+          ^
+utils.cc:156:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "GE_HIREL_TXT";
+          ^
+utils.cc:158:10: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+   return "UNKNOW DC_GENERAL INNER TYPE";
+          ^
+parse.cc: In member function 'void Parse::HandlePacket(timeval, unsigned char*, int)':
+parse.cc:671:17: warning: deprecated conversion from string constant to 'char*' [-Wwrite-strings]
+          iproto = "TCP";
+                 ^

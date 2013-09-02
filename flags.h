@@ -6,7 +6,7 @@
 
 //#define BUFFERSIZE 1024
 const int BUFFERSIZE = 1024;
-static const int CAP_PACK_BUF_SIZE = 2048;
+static const int CAP_PACK_BUF_SIZE = 4096;
 static const int ZMQ_RCVHWM_SIZE = 1024*1024;
 static const int ZMQ_SNDHWM_SIZE = 1024*1024;
 

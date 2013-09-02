@@ -144,6 +144,7 @@ void RunCaptureThread(zmq::context_t &context, int adapter_id, deque<CaptureNetP
 	for(deque<HandleNetPacket>::iterator iter=handle_net_packet_deque.begin();iter!=handle_net_packet_deque.end();iter++)
 	{
 		iter->Init();
+		Utils::SleepUsec(1000000);
 		iter->Start();
 	}
 }

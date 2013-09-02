@@ -1042,7 +1042,7 @@ BOOL CompressL2OrderStat(WORD wMarket,const DC_SZL2_ORDER_STAT* pStat,BYTE* pBuf
 
 }
 
-int ExpandL2OrderStat(const BYTE* pData,int nDataLen,WORD& wMarket,DC_SZL2_ORDER_STAT* pStatBuf,int& nBufSize)
+int ExpandL2OrderStat(const BYTE* pData,int nDataLen,DC_SZL2_ORDER_STAT* pStatBuf,int& nBufSize)
 {
 	int nRet = 0;
 
@@ -1052,7 +1052,7 @@ int ExpandL2OrderStat(const BYTE* pData,int nDataLen,WORD& wMarket,DC_SZL2_ORDER
 
 	try
 	{
-		wMarket = (WORD)stream.Get(16);
+		stream.Get(16);
 		pStatBuf->m_nNum = (short)stream.Get(16);
 		pStatBuf->m_time = stream.Get(32);
 

@@ -47,7 +47,7 @@ void * CaptureNetPacket::RunThreadFunc()
     pcap_if_t *d;
     int i;
     int inum = adapter_id_;
-    int len=65535;
+    int len=10240;
     int mode= 1;
     int timeout=1000;
     pcap_addr_t *a;
@@ -135,6 +135,7 @@ void CaptureNetPacket::PacketHandler(unsigned char *param, const struct pcap_pkt
 	unsigned char *pdata = new unsigned char[CAP_PACK_BUF_SIZE];
 	assert(NULL != pdata);
 	memset(pdata, 0, CAP_PACK_BUF_SIZE);
+	assert(CAP_PACK_BUF_SIZE >= header->caplen);
 	memcpy(pdata,pkt_data,header->caplen);
 	item.data = pdata;
 	DispatchCapData(sock, &item, sizeof(item));
